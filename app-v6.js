@@ -99,6 +99,52 @@ cyl(.42,.45,[-3.5,10.45,3.8],M(0xb5b9b6,.55,.35),tx);
 for(const x of [-6,6])for(const z of [-4.7,4.7]){const w=cyl(.42,.5,[x,.2,z],black,tx,18);w.rotation.z=Math.PI/2}
 for(const z of [-3,3])torus(.34,.055,[-8.2,8.1,z],gal,tx,0);
 cyl(.38,.18,[6.2,8.8,5.8],M(0xe7e1d0,.05,.25),tx);box([.08,1.1,.08],[6.2,9.45,5.8],gal,tx);
+// V10 Phase 3 — 33 kV yard engineering rebuild
+// Main 33 kV bus support portals, post insulators and terminal clamps
+for(const x of [84,96,108,120]){
+  for(const z of [-5.2,5.2])box([.32,6.2,.32],[x,3.1,z],gal);
+  box([.4,.35,11],[x,6.2,0],gal);
+  for(const z of [-3.2,0,3.2]){ins(x,6.35,z,1.45,porc);box([.65,.10,.28],[x,7.9,z],al)}
+}
+// Three complete feeder support portals and outgoing line dead-end hardware
+for(let i=0;i<3;i++){
+  const zc=-18+i*18;
+  const g=new THREE.Group();scene.add(g);
+  // bay steelwork
+  for(const z of [zc-5.1,zc+5.1]){
+    box([.34,7,.34],[126,3.5,z],gal,g);
+    box([.34,8,.34],[143,4,z],gal,g);
+    beamBetween(new THREE.Vector3(126,1,z),new THREE.Vector3(126,6.5,z+(z<zc?1.8:-1.8)),.07,gal,g);
+    beamBetween(new THREE.Vector3(143,1,z),new THREE.Vector3(143,7.5,z+(z<zc?1.8:-1.8)),.07,gal,g);
+  }
+  box([.4,.32,11],[126,7,zc],gal,g);box([.42,.34,11],[143,8,zc],gal,g);
+  // phase post insulators and take-off clamps
+  for(const dz of [-3.2,0,3.2]){
+    ins(126,7.15,zc+dz,1.35,porc,g);box([.62,.10,.28],[126,8.6,zc+dz],al,g);
+    for(let y=6.55;y<=7.6;y+=.25)cyl(.22,.10,[143,y,zc+dz],porc,g,12);
+    box([.62,.12,.30],[143,6.35,zc+dz],al,g);
+  }
+  // breaker mechanism kiosk and CT secondary box
+  box([2.0,2.0,1.5],[132,1.15,zc+5.0],steel,g);
+  box([.75,.9,.65],[136,1.0,zc+4.2],steel,g);
+  // local concrete equipment pads
+  for(const x of [128.5,132,136])box([2.0,.35,8],[x,.18,zc],conc,g);
+  // phase ID plates
+  const pc=[0xff3b30,0xffd21f,0x2677ff];
+  [-3.2,0,3.2].forEach((dz,k)=>box([.08,.5,.8],[142.7,5.3,zc+dz],M(pc[k],.2,.35),g));
+  label('33 kV FEEDER '+(i+1),[145,10,zc-5.5]);
+}
+// 33 kV transformer-side flexible jumpers and bus droppers
+for(const z of [-3.2,0,3.2]){
+  tube([[63.2,14,z],[67,11.5,z],[72,7.5,z],[78,4.2,z],[84,7.9,z]],.065);
+  torus(.30,.04,[63.2,14,z],al,scene,Math.PI/2);
+}
+// Cable trench spine serving feeder mechanisms
+box([63,.22,2.0],[113,.12,12],M(0x6d7475,.85,.25));
+for(let x=83;x<=143;x+=3.5)box([3.1,.08,1.75],[x,.27,12],M(0x8b9291,.8,.25));
+// Yard equipment IDs
+label('33 kV BUSBAR',[104,11,-7]);
+label('33 kV TRANSFORMER INCOMER',[78,8,-7]);
 // V10 Phase 2 — 132 kV incoming bay realism
 // Heavy galvanized incoming portal with crossarm bracing and phase attachment strings
 const inPortal=new THREE.Group();scene.add(inPortal);

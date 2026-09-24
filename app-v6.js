@@ -4,7 +4,7 @@ try{
 const scene=new THREE.Scene();scene.background=new THREE.Color(0xb8ccd5);scene.fog=new THREE.Fog(0xb8ccd5,190,380);
 const camera=new THREE.PerspectiveCamera(44,innerWidth/innerHeight,.1,700);camera.position.set(105,68,118);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;document.getElementById('app').appendChild(renderer.domElement);
-const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(25,5,0);controls.enableDamping=true;controls.minDistance=0.35;controls.maxDistance=260;controls.maxPolarAngle=1.52;
+const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(25,5,0);controls.enableDamping=true;controls.minDistance=0.01;controls.maxDistance=260;controls.maxPolarAngle=1.52;
 // Mouse navigation: left = orbit, middle = pan/drag, right = pan
 controls.mouseButtons.LEFT=THREE.MOUSE.ROTATE;
 controls.mouseButtons.MIDDLE=THREE.MOUSE.PAN;
@@ -18,7 +18,7 @@ controls.panSpeed=2.35;
 controls.rotateSpeed=1.55;
 controls.zoomSpeed=12.0;
 controls.zoomToCursor=true;
-controls.minDistance=.22;
+controls.minDistance=0.01;
 // Desktop navigation should react immediately but coast only slightly.
 controls.keyPanSpeed=18;
 renderer.domElement.addEventListener('auxclick',e=>{if(e.button===1)e.preventDefault()});

@@ -124,7 +124,7 @@ const phaseColors=[0xd94b42,0xe7c447,0x4f7fd7];
 for(let x=-70;x<125;x+=3)box([2.75,.12,2.2],[x,.07,27],M(0x6e7371,.05,.82));
 // training state
 const state={power:false,lineIso:true,cb132:true,busIso:true,cb33:true,fault:false,cut:false,earth:false};
-const flow132=[[],[],[]],flow33=[[],[],[]];
+const flow132=[[],[],[]],flow33=[[],[],[]],flowFeeders=Array.from({length:3},()=>[[],[],[]]);
 function particle(c){
  const g=new THREE.Group();
  const core=new THREE.Mesh(new THREE.SphereGeometry(.30,14,12),new THREE.MeshBasicMaterial({color:c,toneMapped:false}));
@@ -135,10 +135,14 @@ function particle(c){
 const phaseZ132=[-6,0,6], phaseZ33=[-3.2,0,3.2];
 const phaseColorsFlow=[0xff3b30,0xffd21f,0x2677ff]; // R Y B
 const p132=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-122,21,z],[-78,21.7,z],[-69,9.5,z],[-53,5.8,z],[-40,5.55,z],[-15,6.2,z],[-2,5.75,z],[22,7.2,z],[39,7.2,z],[48.8,17,z]].map(v=>new THREE.Vector3(...v))));
-const p33=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[63.2,14,z],[70,4.4,z],[78,4.25,z],[88,4,z],[106,4.5,z],[123,4.5,z],[131,4,-28+z],[141,9,-28+z],[160,10,-28+z]].map(v=>new THREE.Vector3(...v))));
+// 33 kV main path stops at the bus; each outgoing feeder branches cleanly from the bus.
+const p33=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[63.2,14,z],[70,4.4,z],[78,4.25,z],[88,4,z],[94,4.5,z],[106,4.5,z],[123,4.5,z]].map(v=>new THREE.Vector3(...v))));
+const feederZ=[-28,0,28];
+const pFeeders=feederZ.map(fz=>phaseZ33.map((z,ph)=>new THREE.CatmullRomCurve3([[123,4.5,z],[131,4,fz+[-3,0,3][ph]],[141,9,fz+[-3,0,3][ph]],[162,10,fz+[-3,0,3][ph]]].map(v=>new THREE.Vector3(...v)))));
 for(let ph=0;ph<3;ph++){
  for(let i=0;i<22;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/22;flow132[ph].push(o)}
- for(let i=0;i<18;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/18;flow33[ph].push(o)}
+ for(let i=0;i<12;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/12;flow33[ph].push(o)}
+ for(let fd=0;fd<3;fd++)for(let i=0;i<10;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/10;flowFeeders[fd][ph].push(o)}
 }
 const e132=()=>state.power&&state.lineIso&&state.cb132&&state.busIso&&!state.fault;const e33=()=>e132()&&state.cb33;
 function blades(g,closed){(g.userData.blades||[]).forEach(b=>b.rotation.z=closed?0:-.7)}
@@ -174,5 +178,5 @@ document.getElementById('labels').onclick=()=>{labelMode=(labelMode+1)%3;const b
 document.getElementById('controls').onclick=()=>{const p=document.getElementById('left');p.classList.toggle('control-hidden');document.getElementById('controls').textContent=p.classList.contains('control-hidden')?'Show Controls':'Hide Controls'};
 ui();let clock=0;renderer.setAnimationLoop(()=>{clock+=.0024;
  if(cameraFlight){const raw=Math.min(1,(performance.now()-cameraFlight.start)/cameraFlight.duration),k=easeInOutCubic(raw);camera.position.lerpVectors(cameraFlight.fromPos,cameraFlight.toPos,k);controls.target.lerpVectors(cameraFlight.fromTarget,cameraFlight.toTarget,k);if(raw>=1){document.getElementById('eqInfo').textContent='Equipment focused. Click the equipment itself for detailed training information.';cameraFlight=null}}
- controls.update();labels.forEach(s=>{if(labelMode!==0)s.visible=true});flow132.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e132();o.position.copy(p132[ph].getPoint((o.userData.t+clock)%1))}));flow33.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e33();o.position.copy(p33[ph].getPoint((o.userData.t+clock*1.12)%1))}));renderer.render(scene,camera)});
+ controls.update();labels.forEach(s=>{if(labelMode!==0)s.visible=true});flow132.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e132();o.position.copy(p132[ph].getPoint((o.userData.t+clock)%1))}));flow33.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e33();o.position.copy(p33[ph].getPoint((o.userData.t+clock*1.12)%1))}));flowFeeders.forEach((fd,fi)=>fd.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e33();o.position.copy(pFeeders[fi][ph].getPoint((o.userData.t+clock*1.12)%1))})));renderer.render(scene,camera)});
 }catch(err){const e=document.getElementById('err');e.style.display='block';e.textContent='3D simulator failed to initialize: '+err.message;console.error(err)}

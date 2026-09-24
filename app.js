@@ -197,4 +197,40 @@ renderer.domElement.addEventListener('pointerdown',e=>{
 });
 
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
-(function animate(){requestAnimationFrame(animate);controls.update();renderer.render(scene,camera)})();
+
+
+// --- V5 interactive training systems ---
+const state={power:false,lineIso:true,cb132:true,busIso:true,cb33:true,fault:false,cut:false};
+const flow132=[],flow33=[];
+function orb(color){const m=new THREE.Mesh(new THREE.SphereGeometry(.24,10,8),new THREE.MeshBasicMaterial({color}));scene.add(m);return m}
+const path132=new THREE.CatmullRomCurve3([[-108,19,-6],[-76,21,-6],[-53,6,-6],[-14,5,-6],[22,7,-6],[47,8,-5]].map(p=>new THREE.Vector3(...p)));
+const path33=new THREE.CatmullRomCurve3([[63,5,-3.3],[76,4,-3.3],[90,4,-3.3],[112,4,-3.3],[138,9,-3.3],[155,10,-3.3]].map(p=>new THREE.Vector3(...p)));
+for(let i=0;i<18;i++){const a=orb(0xff3b24);a.userData.t=i/18;flow132.push(a)}
+for(let i=0;i<15;i++){const a=orb(0xffa126);a.userData.t=i/15;flow33.push(a)}
+function energized(){return state.power&&state.lineIso&&state.cb132&&state.busIso&&!state.fault}
+function downstream(){return energized()&&state.cb33}
+function updateUI(){
+ const q=id=>document.getElementById(id);
+ q('lineIso').textContent='Line ISO: '+(state.lineIso?'CLOSED':'OPEN');
+ q('cb132').textContent='132 CB: '+(state.cb132?'CLOSED':'OPEN');
+ q('busIso').textContent='Bus ISO: '+(state.busIso?'CLOSED':'OPEN');
+ q('cb33').textContent='33 CB: '+(state.cb33?'CLOSED':'OPEN');
+ q('power').textContent=state.power?'Stop Power Flow':'Start Power Flow';
+ q('cut').classList.toggle('active',state.cut);q('fault').classList.toggle('active',state.fault);
+ q('state').textContent=state.fault?'FAULT DETECTED — 132 kV CB TRIPPED':downstream()?'Energized: 132 kV → transformer → 33 kV feeders':'Path de-energized / isolated';
+}
+function bind(id,key){document.getElementById(id).onclick=()=>{state[key]=!state[key];updateUI()}}
+bind('lineIso','lineIso');bind('cb132','cb132');bind('busIso','busIso');bind('cb33','cb33');
+document.getElementById('power').onclick=()=>{state.power=!state.power;updateUI()};
+document.getElementById('fault').onclick=()=>{state.fault=!state.fault;if(state.fault)state.cb132=false;else state.cb132=true;updateUI()};
+document.getElementById('cut').onclick=()=>{state.cut=!state.cut;tank.material.transparent=true;tank.material.opacity=state.cut?.25:1;tank.material.needsUpdate=true;updateUI()};
+document.getElementById('top').onclick=()=>{camera.position.set(30,155,.1);controls.target.set(30,0,0)};
+document.getElementById('reset').onclick=()=>{camera.position.set(92,58,105);controls.target.set(28,5,0)};
+updateUI();
+let flowClock=0;
+renderer.setAnimationLoop(()=>{
+ flowClock+=.0028;controls.update();
+ flow132.forEach((o,i)=>{o.visible=energized();o.position.copy(path132.getPoint((o.userData.t+flowClock)%1))});
+ flow33.forEach((o,i)=>{o.visible=downstream();o.position.copy(path33.getPoint((o.userData.t+flowClock*1.15)%1))});
+ renderer.render(scene,camera);
+});

@@ -113,10 +113,16 @@ const phaseColors=[0xd94b42,0xe7c447,0x4f7fd7];
 for(let x=-70;x<125;x+=3)box([2.75,.12,2.2],[x,.07,27],M(0x6e7371,.05,.82));
 // training state
 const state={power:false,lineIso:true,cb132:true,busIso:true,cb33:true,fault:false,cut:false,earth:false};
-const flow132=[],flow33=[];function particle(c){const o=new THREE.Mesh(new THREE.SphereGeometry(.13,8,6),new THREE.MeshBasicMaterial({color:c}));scene.add(o);return o}
-const p132=new THREE.CatmullRomCurve3([[-122,21,-6],[-78,21.7,-6],[-53,5.8,-6],[-15,6.2,-6],[22,7.2,-6],[48.8,17,-6]].map(v=>new THREE.Vector3(...v)));
-const p33=new THREE.CatmullRomCurve3([[63.2,14,-3.2],[78,4.25,-3.2],[106,4.5,-3.2],[131,4,-28],[141,9,-28],[160,10,-28]].map(v=>new THREE.Vector3(...v)));
-for(let i=0;i<30;i++){const o=particle(0xff4938);o.userData.t=i/30;flow132.push(o)}for(let i=0;i<24;i++){const o=particle(0xffa12e);o.userData.t=i/24;flow33.push(o)}
+const flow132=[[],[],[]],flow33=[[],[],[]];
+function particle(c){const o=new THREE.Mesh(new THREE.SphereGeometry(.13,8,6),new THREE.MeshBasicMaterial({color:c}));scene.add(o);return o}
+const phaseZ132=[-6,0,6], phaseZ33=[-3.2,0,3.2];
+const phaseColorsFlow=[0xff3b30,0xffd21f,0x2677ff]; // R Y B
+const p132=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-122,21,z],[-78,21.7,z],[-69,9.5,z],[-53,5.8,z],[-40,5.55,z],[-15,6.2,z],[-2,5.75,z],[22,7.2,z],[39,7.2,z],[48.8,17,z]].map(v=>new THREE.Vector3(...v))));
+const p33=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[63.2,14,z],[70,4.4,z],[78,4.25,z],[88,4,z],[106,4.5,z],[123,4.5,z],[131,4,-28+z],[141,9,-28+z],[160,10,-28+z]].map(v=>new THREE.Vector3(...v))));
+for(let ph=0;ph<3;ph++){
+ for(let i=0;i<22;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/22;flow132[ph].push(o)}
+ for(let i=0;i<18;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/18;flow33[ph].push(o)}
+}
 const e132=()=>state.power&&state.lineIso&&state.cb132&&state.busIso&&!state.fault;const e33=()=>e132()&&state.cb33;
 function blades(g,closed){(g.userData.blades||[]).forEach(b=>b.rotation.z=closed?0:-.7)}
 function ui(){blades(lineDisc,state.lineIso);blades(busDisc,state.busIso);for(const [id,key,n] of [['lineIso','lineIso','Line ISO'],['cb132','cb132','132 CB'],['busIso','busIso','Bus ISO'],['cb33','cb33','33 CB']])document.getElementById(id).textContent=n+' '+(state[key]?'CLOSED':'OPEN');document.getElementById('power').classList.toggle('active',state.power);document.getElementById('fault').classList.toggle('active',state.fault);document.getElementById('cut').classList.toggle('active',state.cut);document.getElementById('earth').classList.toggle('active',state.earth);document.getElementById('sLine').textContent=state.power?'ENERGIZED':'DE-ENERGIZED';document.getElementById('sBus').textContent=e132()?'ENERGIZED':'DE-ENERGIZED';document.getElementById('sTx').textContent=e132()?'IN SERVICE':'OUT';document.getElementById('s33').textContent=e33()?'ENERGIZED':'DE-ENERGIZED';document.getElementById('mode').textContent=state.fault?'PROTECTION • FAULT TRIPPED':state.cut?'TRANSFORMER • CUTAWAY':state.earth?'EARTHING • GRID VIEW':state.power?'POWER FLOW • LIVE':'EXPLORE • SYSTEM NORMAL'}
@@ -131,5 +137,5 @@ document.getElementById('overview').onclick=()=>view([105,68,118],[25,5,0]);docu
 // picking
 const ray=new THREE.Raycaster(),mouse=new THREE.Vector2();renderer.domElement.addEventListener('pointerdown',ev=>{mouse.x=ev.clientX/innerWidth*2-1;mouse.y=-(ev.clientY/innerHeight)*2+1;ray.setFromCamera(mouse,camera);const h=ray.intersectObjects(scene.children,true)[0];if(!h)return;let o=h.object;while(o.parent&&!o.userData?.name)o=o.parent;if(o.userData?.name){document.getElementById('eqName').textContent=o.userData.name;document.getElementById('eqInfo').innerHTML='<b>'+o.userData.kv+' kV</b><br>'+o.userData.info}});
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
-ui();let clock=0;renderer.setAnimationLoop(()=>{clock+=.0024;controls.update();const d=camera.position.distanceTo(controls.target);labels.forEach(s=>s.visible=d>48);flow132.forEach(o=>{o.visible=e132();o.position.copy(p132.getPoint((o.userData.t+clock)%1))});flow33.forEach(o=>{o.visible=e33();o.position.copy(p33.getPoint((o.userData.t+clock*1.12)%1))});renderer.render(scene,camera)});
+ui();let clock=0;renderer.setAnimationLoop(()=>{clock+=.0024;controls.update();const d=camera.position.distanceTo(controls.target);labels.forEach(s=>s.visible=d>48);flow132.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e132();o.position.copy(p132[ph].getPoint((o.userData.t+clock)%1))}));flow33.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e33();o.position.copy(p33[ph].getPoint((o.userData.t+clock*1.12)%1))}));renderer.render(scene,camera)});
 }catch(err){const e=document.getElementById('err');e.style.display='block';e.textContent='3D simulator failed to initialize: '+err.message;console.error(err)}

@@ -66,7 +66,16 @@ const cvt=new THREE.Group();scene.add(cvt);[-6,0,6].forEach(z=>{pad(-29,z);box([
 const breaker=new THREE.Group();scene.add(breaker);const cb132Contacts=[];[-6,0,6].forEach(z=>{pad(-15,z,2.8,2.6);box([1.8,1.25,1.5],[-15,1,z],steel);ins(-15.42,1.55,z,3.35,porc);ins(-14.58,1.55,z,3.35,porc);cyl(.52,1.55,[-15,5.15,z],steel);const c132=box([1.9,.18,.35],[-15,5.95,z],al);cb132Contacts.push(c132)});box([3.2,2.4,2.2],[-15,1.2,10],steel);reg(breaker,'132 kV Circuit Breaker',132,'Interrupts load and fault current when commanded by protection or control systems.');label('132 kV CIRCUIT BREAKER',[-15,9.3,-10]);
 const busDisc=disconnector(-2,'132 kV Bus Disconnector');label('BUS DISCONNECTOR',[-2,8.8,-10]);
 // primary conductor continuity; CVT taps are separate
-[-6,0,6].forEach(z=>{tube([[-69,9.5,z],[-56.1,5.75,z]],.085);tube([[-49.9,5.75,z],[-40,5.55,z],[-15,6.2,z],[-5.1,5.75,z]],.085);tube([[1.1,5.75,z],[8,7.2,z]],.085);tube([[-40,5.55,z],[-29,6.7,z]],.045)});
+[-6,0,6].forEach(z=>{
+ tube([[-69,9.5,z],[-56.1,5.75,z]],.085);
+ // Primary conductor terminates on the LINE-side CB bushing.
+ tube([[-49.9,5.75,z],[-40,5.55,z],[-15.42,5.95,z]],.085);
+ // Separate BUS-side conductor begins at the opposite CB bushing.
+ tube([[-14.58,5.95,z],[-5.1,5.75,z]],.085);
+ tube([[1.1,5.75,z],[8,7.2,z]],.085);
+ // CVT is a shunt voltage tap, not a series power conductor.
+ tube([[-40,5.55,z],[-29,6.7,z]],.045)
+});
 // V8 bus support steel portals
 for(const x of [9,31]){for(const z of [-8,8])box([.22,7,.22],[x,3.5,z],gal);box([.28,.28,17],[x,6.7,0],gal)}
 // bus
@@ -261,7 +270,10 @@ const inst33=new THREE.Group();scene.add(inst33);[-3.2,0,3.2].forEach(z=>{pad(88
 [-3.2,0,3.2].forEach(z=>{
   // One physical phase conductor per 33 kV transformer bushing.
   // Keep this primary path single and continuous: LV bushing -> incomer CB -> CT/VT.
-  tube([[63.2,14,z],[68.5,8.0,z],[73.5,4.25,z],[78,4.25,z],[88,4.0,z],[94,4.4,z]],.07);
+  // Transformer-side conductor terminates at the incomer CB source-side bushing.
+  tube([[63.2,14,z],[68.5,8.0,z],[73.5,4.25,z],[77.62,3.75,z]],.07);
+  // Bus-side conductor starts at the opposite CB bushing; no fixed conductor bridges the breaker.
+  tube([[78.38,3.75,z],[88,4.0,z],[94,4.4,z]],.07);
   // Riser from instrument-transformer side to the elevated 33 kV bus.
   tube([[94,4.4,z],[96,7.9,z]],.07);
   // Main bus on the new post-insulator support line.
@@ -289,7 +301,8 @@ const feederGroups=[],feederBreakerVisuals=[],feederDisconnectors=[],feederConta
    pad(136,z,1.55,1.55);box([.8,.45,.8],[136,.6,z],steel,g);ins(136,.8,z,2.25,porc,g);
    torus(.48,.11,[136,3.25,z],brown,g,Math.PI/2);
    // physically continuous phase conductor through bay
-   tube([[127.8,3.8,z],[132,3.55,z],[136,3.35,z],[141,9,z],[162,10,z]],.065,al,g);
+   tube([[127.8,3.8,z],[131.62,3.55,z]],.065,al,g);
+   tube([[132.38,3.55,z],[136,3.35,z],[141,9,z],[162,10,z]],.065,al,g);
  });
  g.userData.disconnector=ds;feederDisconnectors.push(ds);
  // outgoing steel gantry
@@ -324,17 +337,20 @@ const phaseZ132=[-6,0,6], phaseZ33=[-3.2,0,3.2];
 const phaseColorsFlow=[0xff3b30,0xffd21f,0x2677ff]; // R Y B
 const p132=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-122,21,z],[-78,21.7,z],[-69,9.5,z],[-53,5.8,z],[-40,5.55,z],[-15,6.2,z],[-2,5.75,z],[22,7.2,z],[39,7.2,z],[48.8,17,z]].map(v=>new THREE.Vector3(...v))));
 // 33 kV main path stops at the bus; each outgoing feeder branches cleanly from the bus.
-const p33=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[63.2,14,z],[68.5,8,z],[73.5,4.25,z],[78,4.25,z],[88,4,z],[94,4.4,z],[96,7.9,z],[108,7.9,z],[120,7.9,z],[123,7.2,z]].map(v=>new THREE.Vector3(...v))));
+const p33Up=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[63.2,14,z],[68.5,8,z],[73.5,4.25,z],[77.62,3.75,z]].map(v=>new THREE.Vector3(...v))));
+const p33=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[78.38,3.75,z],[88,4,z],[94,4.4,z],[96,7.9,z],[108,7.9,z],[120,7.9,z],[123,7.2,z]].map(v=>new THREE.Vector3(...v))));
+const flow33Up=[[],[],[]];
 const feederZ=[-28,0,28];
 const pFeeders=feederZ.map(fz=>phaseZ33.map((z,ph)=>new THREE.CatmullRomCurve3([[123,7.2,z],[126,3.8,fz+[-3,0,3][ph]],[132,3.55,fz+[-3,0,3][ph]],[136,3.35,fz+[-3,0,3][ph]],[141,9,fz+[-3,0,3][ph]],[162,10,fz+[-3,0,3][ph]]].map(v=>new THREE.Vector3(...v)))));
 for(let ph=0;ph<3;ph++){
  for(let i=0;i<22;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/22;flow132[ph].push(o)}
+ for(let i=0;i<8;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/8;flow33Up[ph].push(o)}
  for(let i=0;i<12;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/12;flow33[ph].push(o)}
  for(let fd=0;fd<3;fd++)for(let i=0;i<16;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=(i/16+fd*.055)%1;flowFeeders[fd][ph].push(o)}
 }
 const e132=()=>state.power&&state.lineIso&&state.cb132&&state.busIso&&!state.fault;const e33=()=>e132()&&state.cb33;const eFeeder=i=>e33()&&state.feeders[i]&&state.feederIso[i]&&!state.feederFault[i];
 function blades(g,closed){(g.userData.blades||[]).forEach(b=>b.rotation.z=closed?0:-.7)}
-function breakerVisual(arr,closed){arr.forEach((o,k)=>{if(o.userData.baseY===undefined)o.userData.baseY=o.position.y;o.rotation.z=closed?0:(k%2?-.55:.55);o.position.y=o.userData.baseY+(closed?0:.22)})}
+function breakerVisual(arr,closed){arr.forEach(o=>{if(o.userData.baseY===undefined)o.userData.baseY=o.position.y;o.rotation.z=closed?0:-.72;o.position.y=o.userData.baseY+(closed?0:.34);o.material.emissiveIntensity=closed?0:.08})}
 function setSldState(id,closed){const e=document.getElementById(id);if(!e)return;e.textContent=closed?'●':'○';e.classList.toggle('sldClosed',closed);e.classList.toggle('sldOpen',!closed)}
 function sldClass(id,closed){const e=document.getElementById(id);if(!e)return;e.classList.toggle('closed',closed);e.classList.toggle('open',!closed)}
 function syncGraphicalSLD(){

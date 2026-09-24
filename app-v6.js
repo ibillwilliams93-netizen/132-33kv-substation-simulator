@@ -261,7 +261,16 @@ reg(tx,'132/33 kV Power Transformer',132,'Transfers energy from the 132 kV syste
 // 33 kV yard
 const cb33g=new THREE.Group();scene.add(cb33g);const cb33Contacts=[];[-3.2,0,3.2].forEach(z=>{pad(78,z,2.2,2);box([1.45,1.15,1.25],[78,.95,z],steel);ins(77.62,1.35,z,2.25,porc);ins(78.38,1.35,z,2.25,porc);const c33=box([1.25,.16,.28],[78,3.75,z],al);cb33Contacts.push(c33)});reg(cb33g,'33 kV Transformer Incomer Circuit Breaker',33,'Controls and protects the transformer connection to the 33 kV bus.');label('33 kV INCOMER CB',[78,7,-8]);
 const inst33=new THREE.Group();scene.add(inst33);[-3.2,0,3.2].forEach(z=>{pad(88,z,1.8,1.8);box([.9,.55,.9],[88,.7,z],steel);ins(88,1,z,2.5,porc)});reg(inst33,'33 kV CT / VT',33,'Provides current and voltage measurements for 33 kV protection and metering.');label('33 kV CT / VT',[88,6.5,-8]);
-[-3.2,0,3.2].forEach((z,i)=>{tube([[63.2,14,z],[70,4.4,z],[78,4.25,z],[88,4,z],[94,4.5,z]],.07);ins(96,.3,z,3.7,porc);ins(116,.3,z,3.7,porc);tube([[94,4.5,z],[123,4.5,z]],.08)});label('33 kV BUSBAR',[106,8.2,-8]);
+[-3.2,0,3.2].forEach(z=>{
+  // Transformer LV terminal -> incomer CB -> CT/VT.
+  tube([[63.2,14,z],[70,5.2,z],[78,4.25,z],[88,4.0,z],[94,4.4,z]],.07);
+  // Riser from instrument-transformer side to the new elevated 33 kV bus.
+  tube([[94,4.4,z],[96,7.9,z]],.07);
+  // Main bus now rests on the new post-insulator support line at x=96/108/120.
+  tube([[96,7.9,z],[108,7.9,z],[120,7.9,z]],.08);
+  // Short controlled drop to the feeder take-off point.
+  tube([[120,7.9,z],[123,7.2,z]],.07);
+});label('33 kV BUSBAR',[108,10.4,-7]);
 // V9 Phase 2: three complete, visually distinct 33 kV feeder bays.
 // Each bay has bus take-off, three-phase disconnector, breaker, CT, outgoing gantry and conductors.
 const feederGroups=[],feederBreakerVisuals=[],feederDisconnectors=[],feederContacts=[[],[],[]];
@@ -271,7 +280,7 @@ const feederGroups=[],feederBreakerVisuals=[],feederDisconnectors=[],feederConta
  [-3,0,3].forEach((d,j)=>{
    const z=fz+d, busz=[-3.2,0,3.2][j];
    // bus take-off and feeder disconnector
-   tube([[123,4.5,busz],[126,4.5,z]],.065,al,g);
+   tube([[123,7.2,busz],[124.5,6.0,z],[126,3.8,z]],.065,al,g);
    pad(127,z,2.2,1.6);ins(126.25,.4,z,3.15,porc,g);ins(127.75,.4,z,3.15,porc,g);
    const pivot=new THREE.Group();pivot.position.set(126.25,3.8,z);scene.add(pivot);
    box([1.55,.11,.14],[.78,0,0],al,pivot);ds.userData.blades=(ds.userData.blades||[]);ds.userData.blades.push(pivot);
@@ -318,9 +327,9 @@ const phaseZ132=[-6,0,6], phaseZ33=[-3.2,0,3.2];
 const phaseColorsFlow=[0xff3b30,0xffd21f,0x2677ff]; // R Y B
 const p132=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-122,21,z],[-78,21.7,z],[-69,9.5,z],[-53,5.8,z],[-40,5.55,z],[-15,6.2,z],[-2,5.75,z],[22,7.2,z],[39,7.2,z],[48.8,17,z]].map(v=>new THREE.Vector3(...v))));
 // 33 kV main path stops at the bus; each outgoing feeder branches cleanly from the bus.
-const p33=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[63.2,14,z],[70,4.4,z],[78,4.25,z],[88,4,z],[94,4.5,z],[106,4.5,z],[123,4.5,z]].map(v=>new THREE.Vector3(...v))));
+const p33=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[63.2,14,z],[70,5.2,z],[78,4.25,z],[88,4,z],[94,4.4,z],[96,7.9,z],[108,7.9,z],[120,7.9,z],[123,7.2,z]].map(v=>new THREE.Vector3(...v))));
 const feederZ=[-28,0,28];
-const pFeeders=feederZ.map(fz=>phaseZ33.map((z,ph)=>new THREE.CatmullRomCurve3([[123,4.5,z],[131,4,fz+[-3,0,3][ph]],[141,9,fz+[-3,0,3][ph]],[162,10,fz+[-3,0,3][ph]]].map(v=>new THREE.Vector3(...v)))));
+const pFeeders=feederZ.map(fz=>phaseZ33.map((z,ph)=>new THREE.CatmullRomCurve3([[123,7.2,z],[126,3.8,fz+[-3,0,3][ph]],[132,3.55,fz+[-3,0,3][ph]],[136,3.35,fz+[-3,0,3][ph]],[141,9,fz+[-3,0,3][ph]],[162,10,fz+[-3,0,3][ph]]].map(v=>new THREE.Vector3(...v)))));
 for(let ph=0;ph<3;ph++){
  for(let i=0;i<22;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/22;flow132[ph].push(o)}
  for(let i=0;i<12;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/12;flow33[ph].push(o)}

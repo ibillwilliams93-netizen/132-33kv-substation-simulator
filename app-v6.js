@@ -94,8 +94,17 @@ const towerPhaseZ=[-6,0,6];
 const towerPhaseY=[25.0,29.0,25.0];
 towerPhaseZ.forEach((z,i)=>{
  const y=towerPhaseY[i];
- beamBetween([TX,y,TZ],[TX,y,z],.20,gal);
- beamBetween([TX,y-1.5,TZ],[TX,y,z],.10,gal);
+ // Outer phases use side arms; the centre phase gets its own clearly visible crossarm
+ // through the tower so it is structurally supported instead of hanging from the peak/body.
+ if(i===1){
+   beamBetween([TX-4.2,y,TZ],[TX+4.2,y,TZ],.22,gal);
+   beamBetween([TX-2.9,y-1.55,TZ],[TX,y,TZ],.11,gal);
+   beamBetween([TX+2.9,y-1.55,TZ],[TX,y,TZ],.11,gal);
+   box([.75,.20,.75],[TX,y,TZ],gal);
+ }else{
+   beamBetween([TX,y,TZ],[TX,y,z],.20,gal);
+   beamBetween([TX,y-1.5,TZ],[TX,y,z],.10,gal);
+ }
  const str=new THREE.Group();str.position.set(TX,y,z);scene.add(str);
  ins(0,-3.4,0,3.4,brown,str);
  // Each phase span runs from the actual tower insulator bottom to its gantry termination.

@@ -29,7 +29,7 @@ function torus(R,r,p,m=steel,parent=scene,rx=Math.PI/2){const o=new THREE.Mesh(n
 function beamBetween(a,b,r=.07,m=gal,parent=scene){const A=new THREE.Vector3(...a),B=new THREE.Vector3(...b),mid=A.clone().add(B).multiplyScalar(.5);const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,A.distanceTo(B),8),m);o.position.copy(mid);o.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),B.clone().sub(A).normalize());o.castShadow=true;parent.add(o);return o}
 function ins(x,y,z,h=4.5,material=brown,parent=scene){const g=new THREE.Group();g.position.set(x,y,z);parent.add(g);cyl(.11,h,[0,h/2,0],steel,g);for(let a=.3;a<h;a+=.34)cyl(.36,.085,[0,a,0],material,g,18);cyl(.18,.18,[0,h+.05,0],gal,g);return g}
 function lattice(x,z,h=18){const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);for(const dx of [-.45,.45])for(const dz of [-.45,.45])box([.12,h,.12],[dx,h/2,dz],gal,g);for(let y=1;y<h;y+=1.8){for(const zz of [-.45,.45]){const b=box([1.15,.09,.09],[0,y,zz],gal,g);b.rotation.z=(y%3.6<1)?.55:-.55}}return g}
-const labelRegistry=new Map();function label(t,p){if(labelRegistry.has(t))return labelRegistry.get(t);const c=document.createElement('canvas');c.width=512;c.height=84;const q=c.getContext('2d');q.fillStyle='#06131ddd';q.roundRect(2,2,508,80,13);q.fill();q.fillStyle='#fff';q.font='bold 25px Arial';q.textAlign='center';q.fillText(t,256,52);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),depthTest:false}));s.position.set(...p);s.scale.set(8.0,1.34,1);s.material.opacity=.9;s.renderOrder=20;scene.add(s);s.userData={isEquipmentLabel:true,labelText:t,target:new THREE.Vector3(...p)};labels.push(s);labelRegistry.set(t,s);return s}
+const labelRegistry=new Map();function label(t,p){if(labelRegistry.has(t))return labelRegistry.get(t);const c=document.createElement('canvas');c.width=512;c.height=84;const q=c.getContext('2d');q.fillStyle='#06131ddd';q.roundRect(2,2,508,80,13);q.fill();q.fillStyle='#fff';q.font='bold 25px Arial';q.textAlign='center';q.fillText(t,256,52);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),depthTest:false}));s.position.set(...p);s.scale.set(6.4,1.08,1);s.material.opacity=.86;s.renderOrder=20;scene.add(s);s.userData={isEquipmentLabel:true,labelText:t,target:new THREE.Vector3(...p)};labels.push(s);labelRegistry.set(t,s);return s}
 // Civil works
 // V7 crushed-rock yard: vertex-level tone variation avoids the flat CAD look
 const gg=new THREE.PlaneGeometry(270,130,80,40);
@@ -112,12 +112,12 @@ for(let i=0;i<3;i++){
   const g=new THREE.Group();scene.add(g);
   // bay steelwork
   for(const z of [zc-5.1,zc+5.1]){
-    box([.34,7,.34],[126,3.5,z],gal,g);
-    box([.34,8,.34],[143,4,z],gal,g);
+    box([.26,7,.26],[126,3.5,z],gal,g);
+    box([.26,8,.26],[143,4,z],gal,g);
     beamBetween(new THREE.Vector3(126,1,z),new THREE.Vector3(126,6.5,z+(z<zc?1.8:-1.8)),.07,gal,g);
     beamBetween(new THREE.Vector3(143,1,z),new THREE.Vector3(143,7.5,z+(z<zc?1.8:-1.8)),.07,gal,g);
   }
-  box([.4,.32,11],[126,7,zc],gal,g);box([.42,.34,11],[143,8,zc],gal,g);
+  box([.30,.28,11],[126,7,zc],gal,g);box([.30,.28,11],[143,8,zc],gal,g);
   // phase post insulators and take-off clamps
   for(const dz of [-3.2,0,3.2]){
     ins(126,7.15,zc+dz,1.35,porc,g);box([.62,.10,.28],[126,8.6,zc+dz],al,g);
@@ -130,9 +130,8 @@ for(let i=0;i<3;i++){
   // local concrete equipment pads
   for(const x of [128.5,132,136])box([2.0,.35,8],[x,.18,zc],conc,g);
   // phase ID plates
-  const pc=[0xff3b30,0xffd21f,0x2677ff];
-  [-3.2,0,3.2].forEach((dz,k)=>box([.08,.5,.8],[142.7,5.3,zc+dz],M(pc[k],.2,.35),g));
-  label('33 kV FEEDER '+(i+1),[145,10,zc-5.5]);
+  // phase identification is carried by conductor position and equipment labels; floating plates removed for clarity
+  label('F'+(i+1)+' OUTGOING',[144,8.8,zc-4.6]);
 }
 // 33 kV transformer-side flexible jumpers and bus droppers
 for(const z of [-3.2,0,3.2]){
@@ -143,8 +142,8 @@ for(const z of [-3.2,0,3.2]){
 box([63,.22,2.0],[113,.12,12],M(0x6d7475,.85,.25));
 for(let x=83;x<=143;x+=3.5)box([3.1,.08,1.75],[x,.27,12],M(0x8b9291,.8,.25));
 // Yard equipment IDs
-label('33 kV BUSBAR',[104,11,-7]);
-label('33 kV TRANSFORMER INCOMER',[78,8,-7]);
+
+
 // V10 Phase 2 — 132 kV incoming bay realism
 // Heavy galvanized incoming portal with crossarm bracing and phase attachment strings
 const inPortal=new THREE.Group();scene.add(inPortal);
@@ -182,7 +181,7 @@ for(const z of [-6,0,6]){
   tube([[-15,2.2,8],[-15,3.0,z]],.045,steel);
 }
 // 132 kV bus support portals with bracing and post-insulator terminal caps
-for(const x of [-7,5,17,29,39]){
+for(const x of [-7,17,39]){
   for(const z of [-9,9]){box([.4,9,.4],[x,4.5,z],gal);beamBetween(new THREE.Vector3(x,1,z),new THREE.Vector3(x,8,z+(z<0?2:-2)),.07,gal)}
   box([.55,.45,19],[x,9,0],gal);
   for(const z of [-6,0,6]){ins(x,9.15,z,2.4,porc);box([.8,.12,.35],[x,11.7,z],al)}
@@ -194,7 +193,7 @@ for(const z of [-6,0,6]){
 }
 // Equipment identification boards
 label('132 kV INCOMING GANTRY',[-48,16,-11]);
-label('132 kV SURGE ARRESTERS',[-40,8,-11]);
+
 // V10 Phase 1 — engineering-model realism pass: transformer bay + primary connections
 // Transformer rail tracks, wheel stops and heavier plinth detailing
 for(const z of [-4.8,4.8]){

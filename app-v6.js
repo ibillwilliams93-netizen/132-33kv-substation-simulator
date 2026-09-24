@@ -29,56 +29,16 @@ function torus(R,r,p,m=steel,parent=scene,rx=Math.PI/2){const o=new THREE.Mesh(n
 function beamBetween(a,b,r=.07,m=gal,parent=scene){const A=new THREE.Vector3(...a),B=new THREE.Vector3(...b),mid=A.clone().add(B).multiplyScalar(.5);const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,A.distanceTo(B),8),m);o.position.copy(mid);o.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),B.clone().sub(A).normalize());o.castShadow=true;parent.add(o);return o}
 function ins(x,y,z,h=4.5,material=brown,parent=scene){const g=new THREE.Group();g.position.set(x,y,z);parent.add(g);cyl(.11,h,[0,h/2,0],steel,g);for(let a=.3;a<h;a+=.34)cyl(.36,.085,[0,a,0],material,g,18);cyl(.18,.18,[0,h+.05,0],gal,g);return g}
 function lattice(x,z,h=18){const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);for(const dx of [-.45,.45])for(const dz of [-.45,.45])box([.12,h,.12],[dx,h/2,dz],gal,g);for(let y=1;y<h;y+=1.8){for(const zz of [-.45,.45]){const b=box([1.15,.09,.09],[0,y,zz],gal,g);b.rotation.z=(y%3.6<1)?.55:-.55}}return g}
-function label(t,p){const c=document.createElement('canvas');c.width=512;c.height=84;const q=c.getContext('2d');q.fillStyle='#06131ddd';q.roundRect(2,2,508,80,13);q.fill();q.fillStyle='#fff';q.font='bold 25px Arial';q.textAlign='center';q.fillText(t,256,52);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),depthTest:false}));s.position.set(...p);s.scale.set(10.8,1.8,1);s.material.opacity=.96;s.material.depthTest=false;s.renderOrder=20;scene.add(s);s.userData={isEquipmentLabel:true,labelText:t,target:new THREE.Vector3(...p)};labels.push(s);return s}
-// Civil works
-// V7 crushed-rock yard: vertex-level tone variation avoids the flat CAD look
-const gg=new THREE.PlaneGeometry(270,130,80,40);
-const gc=[];for(let i=0;i<gg.attributes.position.count;i++){const n=.43+Math.random()*.09;gc.push(n,n*.99,n*.94)}
-gg.setAttribute('color',new THREE.Float32BufferAttribute(gc,3));
-const gmat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,metalness:0});
-const ground=new THREE.Mesh(gg,gmat);ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
-box([250,.08,8],[25,.04,48],M(0x555b59,0,.96));box([250,.12,.5],[25,.06,53],conc);box([250,.12,.5],[25,.06,-55],conc);
-for(const x of [-96,146])box([.22,2.3,110],[x,1.15,0],gal);
-for(let z=-54;z<=54;z+=6){box([.16,2.3,.16],[-96,1.15,z],gal);box([.16,2.3,.16],[146,1.15,z],gal)}
-// V7 perimeter security fence mesh, warning boards and yard lighting
-const fenceMat=new THREE.MeshStandardMaterial({color:0x7e8789,metalness:.72,roughness:.5,wireframe:true});
-for(const z of [-54,54]){const mesh=new THREE.Mesh(new THREE.PlaneGeometry(240,2.4,80,2),fenceMat);mesh.position.set(25,1.2,z);scene.add(mesh)}
-for(const x of [-94,144]){const mesh=new THREE.Mesh(new THREE.PlaneGeometry(108,2.4,36,2),fenceMat);mesh.rotation.y=Math.PI/2;mesh.position.set(x,1.2,0);scene.add(mesh)}
-for(const x of [-70,-25,20,65,110,135]){box([.18,8,.18],[x,4,50],gal);box([2.2,.12,.12],[x,8,50],gal);const lamp=box([1.1,.22,.5],[x+1,7.9,50],M(0xe5e1c7,.1,.3));lamp.rotation.z=-.18}
-// buried earthing
-for(let x=-85;x<135;x+=10){const e=box([.04,.035,98],[x,-.08,-2],copper);earthObjects.push(e)}
-for(let z=-48;z<48;z+=10){const e=box([220,.035,.04],[25,-.08,z],copper);earthObjects.push(e)}
-// 132 gantry + sagging incoming
-lattice(-78,-9,20);lattice(-78,9,20);box([1.2,.8,20],[-78,18,0],gal);
-[-6,0,6].forEach(z=>{ins(-78,18,z,3.6,brown);tube([[-125,21,z],[-108,19.4,z],[-94,19.1,z],[-78,21.7,z],[-69,9.5,z]],.095)});
-label('132 kV INCOMING',[-88,26,-11]);
-// arresters shunt
-const la=new THREE.Group();scene.add(la);[-6,0,6].forEach(z=>{pad(-65,z,1.8,1.8);ins(-65,.4,z,4.7,brown);tube([[-69,9.5,z],[-65,5.3,z]],.05);const e=tube([[-65,.45,z],[-65,-.05,z]],.04,copper);earthObjects.push(e)});reg(la,'132 kV Surge Arresters',132,'Limits overvoltage by diverting surge current to earth. It is connected phase-to-earth, not in series with normal load current.');label('SURGE ARRESTERS',[-65,8.5,-10]);
-// disconnectors with real blades
-function disconnector(x,name){const g=new THREE.Group();scene.add(g);[-6,0,6].forEach(z=>{pad(x,z,4.4,2.4);ins(x-1.45,.4,z,4.7,brown);ins(x+1.45,.4,z,4.7,brown);const pivot=new THREE.Group();pivot.position.set(x-1.45,5.3,z);scene.add(pivot);const blade=box([3,.13,.18],[1.5,0,0],al,pivot);cyl(.18,.28,[2.92,0,0],copper,pivot);g.add(pivot);
- box([3.8,.16,.16],[x,.62,z],gal);cyl(.12,4.5,[x,.62,z+.75],gal);beamBetween([x,.75,z+.75],[x-1.35,5.15,z],.06,gal);g.userData.blades=(g.userData.blades||[]);g.userData.blades.push(pivot)});reg(g,name,132,'Provides a visible isolation gap. It is not intended to interrupt fault current or normal load current.');return g}
-const lineDisc=disconnector(-53,'132 kV Line Disconnector');label('LINE DISCONNECTOR',[-53,8.8,-10]);
-// CT
-const ct=new THREE.Group();scene.add(ct);[-6,0,6].forEach(z=>{pad(-40,z);box([1.25,.7,1.25],[-40,.75,z],steel);ins(-40,1.05,z,3.7,brown);cyl(.82,1.05,[-40,4.25,z],brown);torus(.78,.16,[-40,4.8,z],brown,scene,Math.PI/2);box([1.35,.16,.28],[-40,5.35,z],al)});reg(ct,'132 kV Current Transformers',132,'Measures primary current for metering and protection. Secondary circuits are separate from the primary power conductor.');label('CURRENT TRANSFORMERS',[-40,8.8,-10]);
-// CVT shunt measurement
-const cvt=new THREE.Group();scene.add(cvt);[-6,0,6].forEach(z=>{pad(-29,z);box([1.65,1.15,1.55],[-29,.95,z],steel);ins(-29,1.45,z,5.35,brown);cyl(.42,.6,[-29,6.95,z],steel);box([1.15,.12,.22],[-29,7.28,z],al)});reg(cvt,'132 kV CVT / VT',132,'Provides scaled voltage signals for metering, protection and synchronization; it does not carry the main load current.');label('CVT / VT',[-29,9.6,-10]);
-// breaker
-const breaker=new THREE.Group();scene.add(breaker);const cb132Contacts=[];[-6,0,6].forEach(z=>{pad(-15,z,2.8,2.6);box([1.8,1.25,1.5],[-15,1,z],steel);ins(-15.42,1.55,z,3.35,porc);ins(-14.58,1.55,z,3.35,porc);cyl(.52,1.55,[-15,5.15,z],steel);const c132=box([1.9,.18,.35],[-15,5.95,z],al);cb132Contacts.push(c132)});box([3.2,2.4,2.2],[-15,1.2,10],steel);reg(breaker,'132 kV Circuit Breaker',132,'Interrupts load and fault current when commanded by protection or control systems.');label('132 kV CIRCUIT BREAKER',[-15,9.3,-10]);
-const busDisc=disconnector(-2,'132 kV Bus Disconnector');label('BUS DISCONNECTOR',[-2,8.8,-10]);
-// primary conductor continuity; CVT taps are separate
-[-6,0,6].forEach(z=>{tube([[-69,9.5,z],[-56.1,5.75,z]],.085);tube([[-49.9,5.75,z],[-40,5.55,z],[-15,6.2,z],[-5.1,5.75,z]],.085);tube([[1.1,5.75,z],[8,7.2,z]],.085);tube([[-40,5.55,z],[-29,6.7,z]],.045)});
-// V8 bus support steel portals
-for(const x of [9,31]){for(const z of [-8,8])box([.22,7,.22],[x,3.5,z],gal);box([.28,.28,17],[x,6.7,0],gal)}
-// bus
-[-6,0,6].forEach(z=>{ins(10,.3,z,6.2,brown);ins(31,.3,z,6.2,brown);tube([[8,7.2,z],[39,7.2,z]],.115)});label('132 kV BUSBAR',[22,11,-10]);
-// transformer local group centered correctly
-box([32,.55,28],[56,.275,0],conc);for(const [s,p] of [[[34,.7,1],[56,.35,-15]],[[34,.7,1],[56,.35,15]],[[1,.7,30],[39,.35,0]],[[1,.7,30],[73,.35,0]]])box(s,p,conc);
-const tx=new THREE.Group();tx.position.set(56,.55,0);scene.add(tx);const tank=box([17,9,12],[0,5,0],txmat,tx);cutObjects.push(tank);box([18,.45,13],[0,9.9,0],txmat,tx);
-// V7 transformer detail: radiator banks, headers, fans, pipework and accessory silhouettes
-for(const side of [-1,1]){
-  cyl(.22,7,[side*9.1,7.6,0],txmat,tx);
-  cyl(.22,7,[side*9.1,2.2,0],txmat,tx);
+const labelRegistry=new Map();
+function label(t,p){
+ if(labelRegistry.has(t)){const existing=labelRegistry.get(t);return existing}
+ const c=document.createElement('canvas');c.width=768;c.height=128;const x=c.getContext('2d');
+ x.fillStyle='rgba(8,42,61,.78)';x.roundRect(5,5,758,118,22);x.fill();x.fillStyle='#fff';x.font='700 40px Arial';x.textAlign='center';x.textBaseline='middle';x.fillText(t,384,64);
+ const tex=new THREE.CanvasTexture(c),s=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false,opacity:.88}));
+ s.position.set(...p);s.scale.set(7.2,1.2,1);s.renderOrder=20;s.userData={isEquipmentLabel:true,labelText:t,target:new THREE.Vector3(...p),baseScale:7.2};scene.add(s);labels.push(s);labelRegistry.set(t,s);return s
 }
+function sagTube(a,b,sag=.7,r=.065,mat=al,parent=scene){const pts=[];for(let i=0;i<=12;i++){const t=i/12;pts.push([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t-sag*4*t*(1-t),a[2]+(b[2]-a[2])*t])}return tube(pts,r,mat,parent)}
+
 // radiator banks
 for(const side of [-1,1])for(let z=-4.8;z<=4.8;z+=1.2){box([2.8,6.6,.12],[side*9.7,4.9,z],gal,tx)}
 // cooling fans on both radiator banks
@@ -189,8 +149,8 @@ for(const x of [-7,5,17,29,39]){
 }
 // Flexible incoming jumpers: gantry → arrester/disconnector/measurement/CB chain visual continuity
 for(const z of [-6,0,6]){
-  tube([[-48,10.95,z],[-45,10.2,z],[-42,7.2,z],[-40,5.25,z]],.075);
-  tube([[-40,5.25,z],[-37,6.2,z],[-34,6.2,z]],.075);
+  sagTube([-48,10.95,z],[-40,5.25,z],.65,.075);
+  sagTube([-40,5.25,z],[-34,6.2,z],.35,.075);
 }
 // Equipment identification boards
 label('132 kV INCOMING GANTRY',[-48,16,-11]);
@@ -432,10 +392,21 @@ renderer.domElement.addEventListener('pointerdown',ev=>{if(ev.button!==0)return;
 const lh=ray.intersectObjects(labels,false)[0];if(lh){focusLabel(lh.object);return}
 const h=ray.intersectObjects(scene.children,true)[0];if(!h)return;let o=h.object;while(o.parent&&!o.userData?.name)o=o.parent;if(o.userData?.name){document.getElementById('eqName').textContent=o.userData.name;document.getElementById('eqInfo').innerHTML='<b>'+o.userData.kv+' kV</b><br>'+o.userData.info}},0)});
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
-let labelMode=2;
+let labelMode=1;
 document.getElementById('labels').onclick=()=>{labelMode=(labelMode+1)%3;const b=document.getElementById('labels');b.textContent=labelMode===0?'Labels: OFF':labelMode===1?'Labels: NORMAL':'Labels: LARGE';labels.forEach(s=>{s.visible=labelMode!==0;s.scale.set(labelMode===2?10.8:7.2,labelMode===2?1.8:1.2,1)})};
 document.getElementById('controls').onclick=()=>{const p=document.getElementById('left');p.classList.toggle('control-hidden');document.getElementById('controls').textContent=p.classList.contains('control-hidden')?'Show Controls':'Hide Controls'};
-ui();let clock=0;renderer.setAnimationLoop(()=>{clock+=.0024;
+ui();let clock=0;function declutterLabels(){
+ const ranked=labels.map(s=>({s,d:camera.position.distanceTo(s.position)})).sort((a,b)=>a.d-b.d);
+ ranked.forEach((o,i)=>{
+   const cut=labelMode===2?115:82;
+   const show=labelMode>0&&o.d<cut&&i<(labelMode===2?12:8);
+   o.s.visible=show && (!cutObjects.includes(o.s)||state.cut);
+   const k=labelMode===2?1.25:1;
+   const base=o.s.userData.baseScale||7.2;o.s.scale.set(base*k,1.2*k,1);
+   o.s.material.opacity=Math.max(.42,Math.min(.9,1-o.d/150));
+ });
+}
+renderer.setAnimationLoop(()=>{clock+=.0024;
  if(cameraFlight){const raw=Math.min(1,(performance.now()-cameraFlight.start)/cameraFlight.duration),k=easeInOutCubic(raw);camera.position.lerpVectors(cameraFlight.fromPos,cameraFlight.toPos,k);controls.target.lerpVectors(cameraFlight.fromTarget,cameraFlight.toTarget,k);if(raw>=1){document.getElementById('eqInfo').textContent='Equipment focused. Click the equipment itself for detailed training information.';cameraFlight=null}}
- controls.update();labels.forEach(s=>{if(labelMode!==0&&!cutObjects.includes(s))s.visible=true});if(state.cut){fluxLoops.forEach((o,i)=>{o.material.opacity=.28+.24*(.5+.5*Math.sin(clock*16+i*1.7));const s=1+.08*Math.sin(clock*16+i*1.7);o.scale.setScalar(s)})}flow132.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e132();o.position.copy(p132[ph].getPoint((o.userData.t+clock)%1))}));flow33.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e33();o.position.copy(p33[ph].getPoint((o.userData.t+clock*1.12)%1))}));flowFeeders.forEach((fd,fi)=>fd.forEach((arr,ph)=>arr.forEach(o=>{o.visible=eFeeder(fi);o.position.copy(pFeeders[fi][ph].getPoint((o.userData.t+clock*1.18)%1))})));renderer.render(scene,camera)});
+ controls.update();declutterLabels();if(state.cut){fluxLoops.forEach((o,i)=>{o.material.opacity=.28+.24*(.5+.5*Math.sin(clock*16+i*1.7));const s=1+.08*Math.sin(clock*16+i*1.7);o.scale.setScalar(s)})}flow132.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e132();o.position.copy(p132[ph].getPoint((o.userData.t+clock)%1))}));flow33.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e33();o.position.copy(p33[ph].getPoint((o.userData.t+clock*1.12)%1))}));flowFeeders.forEach((fd,fi)=>fd.forEach((arr,ph)=>arr.forEach(o=>{o.visible=eFeeder(fi);o.position.copy(pFeeders[fi][ph].getPoint((o.userData.t+clock*1.18)%1))})));renderer.render(scene,camera)});
 }catch(err){const e=document.getElementById('err');e.style.display='block';e.textContent='3D simulator failed to initialize: '+err.message;console.error(err)}

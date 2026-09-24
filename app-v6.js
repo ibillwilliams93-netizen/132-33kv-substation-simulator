@@ -136,7 +136,18 @@ function view(p,t){camera.position.set(...p);controls.target.set(...t);controls.
 document.getElementById('overview').onclick=()=>view([105,68,118],[25,5,0]);document.getElementById('incoming').onclick=()=>view([-48,25,46],[-48,5,0]);document.getElementById('transformer').onclick=()=>view([83,29,35],[56,8,0]);document.getElementById('yard33').onclick=()=>view([138,31,65],[110,4,0]);document.getElementById('top').onclick=()=>view([25,175,.1],[25,0,0]);
 // picking
 const ray=new THREE.Raycaster(),mouse=new THREE.Vector2();
-function focusLabel(s){const t=s.userData.target.clone();const dir=camera.position.clone().sub(controls.target).normalize();camera.position.copy(t.clone().add(dir.multiplyScalar(24)).add(new THREE.Vector3(0,8,0)));controls.target.copy(t);controls.update();document.getElementById('eqName').textContent=s.userData.labelText;document.getElementById('eqInfo').textContent='Focused equipment view. Click the equipment itself for its detailed training information.'}
+let cameraFlight=null;
+function easeInOutCubic(t){return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2}
+function focusLabel(s){
+ const target=s.userData.target.clone();
+ const approach=camera.position.clone().sub(controls.target);approach.y*=.45;
+ if(approach.lengthSq()<.01)approach.set(1,.35,1);
+ approach.normalize();
+ const endPos=target.clone().add(approach.multiplyScalar(20)).add(new THREE.Vector3(0,5.5,0));
+ cameraFlight={start:performance.now(),duration:3200,fromPos:camera.position.clone(),toPos:endPos,fromTarget:controls.target.clone(),toTarget:target.clone()};
+ document.getElementById('eqName').textContent=s.userData.labelText;
+ document.getElementById('eqInfo').textContent='Moving to equipment…';
+}
 renderer.domElement.addEventListener('pointerdown',ev=>{mouse.x=ev.clientX/innerWidth*2-1;mouse.y=-(ev.clientY/innerHeight)*2+1;ray.setFromCamera(mouse,camera);
 const lh=ray.intersectObjects(labels,false)[0];if(lh){focusLabel(lh.object);return}
 const h=ray.intersectObjects(scene.children,true)[0];if(!h)return;let o=h.object;while(o.parent&&!o.userData?.name)o=o.parent;if(o.userData?.name){document.getElementById('eqName').textContent=o.userData.name;document.getElementById('eqInfo').innerHTML='<b>'+o.userData.kv+' kV</b><br>'+o.userData.info}});
@@ -144,5 +155,7 @@ addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updat
 let labelMode=2;
 document.getElementById('labels').onclick=()=>{labelMode=(labelMode+1)%3;const b=document.getElementById('labels');b.textContent=labelMode===0?'Labels: OFF':labelMode===1?'Labels: NORMAL':'Labels: LARGE';labels.forEach(s=>{s.visible=labelMode!==0;s.scale.set(labelMode===2?10.8:7.2,labelMode===2?1.8:1.2,1)})};
 document.getElementById('controls').onclick=()=>{const p=document.getElementById('left');p.classList.toggle('control-hidden');document.getElementById('controls').textContent=p.classList.contains('control-hidden')?'Show Controls':'Hide Controls'};
-ui();let clock=0;renderer.setAnimationLoop(()=>{clock+=.0024;controls.update();labels.forEach(s=>{if(labelMode!==0)s.visible=true});flow132.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e132();o.position.copy(p132[ph].getPoint((o.userData.t+clock)%1))}));flow33.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e33();o.position.copy(p33[ph].getPoint((o.userData.t+clock*1.12)%1))}));renderer.render(scene,camera)});
+ui();let clock=0;renderer.setAnimationLoop(()=>{clock+=.0024;
+ if(cameraFlight){const raw=Math.min(1,(performance.now()-cameraFlight.start)/cameraFlight.duration),k=easeInOutCubic(raw);camera.position.lerpVectors(cameraFlight.fromPos,cameraFlight.toPos,k);controls.target.lerpVectors(cameraFlight.fromTarget,cameraFlight.toTarget,k);if(raw>=1){document.getElementById('eqInfo').textContent='Equipment focused. Click the equipment itself for detailed training information.';cameraFlight=null}}
+ controls.update();labels.forEach(s=>{if(labelMode!==0)s.visible=true});flow132.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e132();o.position.copy(p132[ph].getPoint((o.userData.t+clock)%1))}));flow33.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e33();o.position.copy(p33[ph].getPoint((o.userData.t+clock*1.12)%1))}));renderer.render(scene,camera)});
 }catch(err){const e=document.getElementById('err');e.style.display='block';e.textContent='3D simulator failed to initialize: '+err.message;console.error(err)}

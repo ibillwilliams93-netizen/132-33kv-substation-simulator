@@ -63,7 +63,8 @@ const ct=new THREE.Group();scene.add(ct);[-6,0,6].forEach(z=>{pad(-40,z);box([1.
 // CVT shunt measurement
 const cvt=new THREE.Group();scene.add(cvt);[-6,0,6].forEach(z=>{pad(-29,z);box([1.65,1.15,1.55],[-29,.95,z],steel);ins(-29,1.45,z,5.35,brown);cyl(.42,.6,[-29,6.95,z],steel);box([1.15,.12,.22],[-29,7.28,z],al)});reg(cvt,'132 kV CVT / VT',132,'Provides scaled voltage signals for metering, protection and synchronization; it does not carry the main load current.');label('CVT / VT',[-29,9.6,-10]);
 // breaker
-const breaker=new THREE.Group();scene.add(breaker);const cb132Contacts=[];[-6,0,6].forEach(z=>{pad(-15,z,2.8,2.6);box([1.8,1.25,1.5],[-15,1,z],steel);ins(-15.42,1.55,z,3.35,porc);ins(-14.58,1.55,z,3.35,porc);cyl(.52,1.55,[-15,5.15,z],steel);const c132=box([1.9,.18,.35],[-15,5.95,z],al);cb132Contacts.push(c132)});box([3.2,2.4,2.2],[-15,1.2,10],steel);reg(breaker,'132 kV Circuit Breaker',132,'Interrupts load and fault current when commanded by protection or control systems.');label('132 kV CIRCUIT BREAKER',[-15,9.3,-10]);
+const breaker=new THREE.Group();scene.add(breaker);const cb132Contacts=[];[-6,0,6].forEach(z=>{pad(-15,z,2.8,2.6);box([1.8,1.25,1.5],[-15,1,z],steel);ins(-15.42,1.55,z,3.35,porc);ins(-14.58,1.55,z,3.35,porc);cyl(.52,1.55,[-15,5.15,z],steel);const c132=new THREE.Group();c132.position.set(-15.42,5.95,z);scene.add(c132);box([.84,.18,.35],[.42,0,0],al,c132);cb132Contacts.push(c132)});box([3.2,2.4,2.2],[-15,1.2,10],steel);// CB receiving terminal pads: fixed conductors stop here; moving blade bridges the air gap only when closed.
+[-6,0,6].forEach(z=>box([.34,.22,.42],[-14.58,5.95,z],al));reg(breaker,'132 kV Circuit Breaker',132,'Interrupts load and fault current when commanded by protection or control systems.');label('132 kV CIRCUIT BREAKER',[-15,9.3,-10]);
 const busDisc=disconnector(-2,'132 kV Bus Disconnector');label('BUS DISCONNECTOR',[-2,8.8,-10]);
 // primary conductor continuity; CVT taps are separate
 [-6,0,6].forEach(z=>{
@@ -265,7 +266,9 @@ const lvTag=label('33 kV LV WINDINGS',[60.5,8.2,-8.5]);lvTag.visible=false;cutOb
 reg(tx,'132/33 kV Power Transformer',132,'Transfers energy from the 132 kV system to the 33 kV system by electromagnetic induction. The windings are electrically isolated; energy is coupled through magnetic flux in the core. V9 field detail includes conservator/Buchholz piping, breather, cooling radiators and fans, OLTC enclosure, marshalling kiosk, neutral bushing, gauges, pressure relief, tank earthing and oil containment.');label('132/33 kV POWER TRANSFORMER',[56,22,-11]);
 [-6,0,6].forEach(z=>{tube([[39,7.2,z],[42,8.2,z],[45,12.8,z],[48.8,17,z]],.09);torus(.34,.045,[39,7.2,z],al,scene,Math.PI/2)}); // to HV bushings
 // 33 kV yard
-const cb33g=new THREE.Group();scene.add(cb33g);const cb33Contacts=[];[-3.2,0,3.2].forEach(z=>{pad(78,z,2.2,2);box([1.45,1.15,1.25],[78,.95,z],steel);ins(77.62,1.35,z,2.25,porc);ins(78.38,1.35,z,2.25,porc);const c33=box([1.25,.16,.28],[78,3.75,z],al);cb33Contacts.push(c33)});reg(cb33g,'33 kV Transformer Incomer Circuit Breaker',33,'Controls and protects the transformer connection to the 33 kV bus.');label('33 kV INCOMER CB',[78,7,-8]);
+const cb33g=new THREE.Group();scene.add(cb33g);const cb33Contacts=[];[-3.2,0,3.2].forEach(z=>{pad(78,z,2.2,2);box([1.45,1.15,1.25],[78,.95,z],steel);ins(77.62,1.35,z,2.25,porc);ins(78.38,1.35,z,2.25,porc);const c33=new THREE.Group();c33.position.set(77.62,3.75,z);scene.add(c33);box([.76,.16,.28],[.38,0,0],al,c33);cb33Contacts.push(c33)});// 33 kV incomer receiving terminals
+[-3.2,0,3.2].forEach(z=>box([.28,.20,.34],[78.38,3.75,z],al));
+reg(cb33g,'33 kV Transformer Incomer Circuit Breaker',33,'Controls and protects the transformer connection to the 33 kV bus.');label('33 kV INCOMER CB',[78,7,-8]);
 const inst33=new THREE.Group();scene.add(inst33);[-3.2,0,3.2].forEach(z=>{pad(88,z,1.8,1.8);box([.9,.55,.9],[88,.7,z],steel);ins(88,1,z,2.5,porc)});reg(inst33,'33 kV CT / VT',33,'Provides current and voltage measurements for 33 kV protection and metering.');label('33 kV CT / VT',[88,6.5,-8]);
 [-3.2,0,3.2].forEach(z=>{
   // One physical phase conductor per 33 kV transformer bushing.
@@ -296,7 +299,8 @@ const feederGroups=[],feederBreakerVisuals=[],feederDisconnectors=[],feederConta
    // feeder circuit breaker
    pad(132,z,2.3,1.8);box([1.25,.8,1.05],[132,.78,z],steel,g);
    ins(131.62,1.1,z,2.25,porc,g);ins(132.38,1.1,z,2.25,porc,g);
-   const fc=box([1.25,.15,.24],[132,3.55,z],al,g);feederContacts[i].push(fc);
+   const fc=new THREE.Group();fc.position.set(131.62,3.55,z);scene.add(fc);box([.76,.15,.24],[.38,0,0],al,fc);feederContacts[i].push(fc);
+   box([.28,.18,.30],[132.38,3.55,z],al,g);
    // CT after breaker
    pad(136,z,1.55,1.55);box([.8,.45,.8],[136,.6,z],steel,g);ins(136,.8,z,2.25,porc,g);
    torus(.48,.11,[136,3.25,z],brown,g,Math.PI/2);
@@ -350,7 +354,7 @@ for(let ph=0;ph<3;ph++){
 }
 const e132=()=>state.power&&state.lineIso&&state.cb132&&state.busIso&&!state.fault;const e33=()=>e132()&&state.cb33;const eFeeder=i=>e33()&&state.feeders[i]&&state.feederIso[i]&&!state.feederFault[i];
 function blades(g,closed){(g.userData.blades||[]).forEach(b=>b.rotation.z=closed?0:-.7)}
-function breakerVisual(arr,closed){arr.forEach(o=>{if(o.userData.baseY===undefined)o.userData.baseY=o.position.y;o.rotation.z=closed?0:-.72;o.position.y=o.userData.baseY+(closed?0:.34);o.material.emissiveIntensity=closed?0:.08})}
+function breakerVisual(arr,closed){arr.forEach(o=>{o.rotation.z=closed?0:-1.05;o.rotation.y=0;o.position.y=o.userData.baseY??o.position.y;if(o.userData.baseY===undefined)o.userData.baseY=o.position.y})}
 function setSldState(id,closed){const e=document.getElementById(id);if(!e)return;e.textContent=closed?'●':'○';e.classList.toggle('sldClosed',closed);e.classList.toggle('sldOpen',!closed)}
 function sldClass(id,closed){const e=document.getElementById(id);if(!e)return;e.classList.toggle('closed',closed);e.classList.toggle('open',!closed)}
 function syncGraphicalSLD(){
@@ -458,5 +462,5 @@ document.getElementById('labels').onclick=()=>{labelMode=(labelMode+1)%3;const b
 document.getElementById('controls').onclick=()=>{const p=document.getElementById('left');p.classList.toggle('control-hidden');document.getElementById('controls').textContent=p.classList.contains('control-hidden')?'Show Controls':'Hide Controls'};
 ui();let clock=0;renderer.setAnimationLoop(()=>{clock+=.0024;
  if(cameraFlight){const raw=Math.min(1,(performance.now()-cameraFlight.start)/cameraFlight.duration),k=easeInOutCubic(raw);camera.position.lerpVectors(cameraFlight.fromPos,cameraFlight.toPos,k);controls.target.lerpVectors(cameraFlight.fromTarget,cameraFlight.toTarget,k);if(raw>=1){document.getElementById('eqInfo').textContent='Equipment focused. Click the equipment itself for detailed training information.';cameraFlight=null}}
- controls.update();labels.forEach(s=>{if(labelMode!==0&&!cutObjects.includes(s))s.visible=true});if(state.cut){fluxLoops.forEach((o,i)=>{o.material.opacity=.28+.24*(.5+.5*Math.sin(clock*16+i*1.7));const s=1+.08*Math.sin(clock*16+i*1.7);o.scale.setScalar(s)})}flow132.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e132();o.position.copy(p132[ph].getPoint((o.userData.t+clock)%1))}));flow33.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e33();o.position.copy(p33[ph].getPoint((o.userData.t+clock*1.12)%1))}));flowFeeders.forEach((fd,fi)=>fd.forEach((arr,ph)=>arr.forEach(o=>{o.visible=eFeeder(fi);o.position.copy(pFeeders[fi][ph].getPoint((o.userData.t+clock*1.18)%1))})));renderer.render(scene,camera)});
+ controls.update();labels.forEach(s=>{if(labelMode!==0&&!cutObjects.includes(s))s.visible=true});if(state.cut){fluxLoops.forEach((o,i)=>{o.material.opacity=.28+.24*(.5+.5*Math.sin(clock*16+i*1.7));const s=1+.08*Math.sin(clock*16+i*1.7);o.scale.setScalar(s)})}flow132.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e132();o.position.copy(p132[ph].getPoint((o.userData.t+clock)%1))}));flow33Up.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e132();o.position.copy(p33Up[ph].getPoint((o.userData.t+clock*1.12)%1))}));flow33.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e33();o.position.copy(p33[ph].getPoint((o.userData.t+clock*1.12)%1))}));flowFeeders.forEach((fd,fi)=>fd.forEach((arr,ph)=>arr.forEach(o=>{o.visible=eFeeder(fi);o.position.copy(pFeeders[fi][ph].getPoint((o.userData.t+clock*1.18)%1))})));renderer.render(scene,camera)});
 }catch(err){const e=document.getElementById('err');e.style.display='block';e.textContent='3D simulator failed to initialize: '+err.message;console.error(err)}

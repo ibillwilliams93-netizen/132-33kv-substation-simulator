@@ -17,3 +17,11 @@ This repository is intentionally separate from the EFL Apprentice Hub while V5 i
 7. Guided power-flow visualization
 
 The current commit is the clean GitHub development baseline.
+
+## Saved development state — V10 Phase 6
+
+Current work is committed to `main` and deployed through GitHub Pages. The simulator includes the V10 equipment/modeling upgrades, transformer detail and cutaway, 132 kV and 33 kV yard improvements, independent feeder controls, protection/fault simulation, switching interlocks, interactive SLD, training mode, CB visible-break modeling, corrected feeder exits, and the Phase 6 primary-circuit audit in progress.
+
+Latest runtime hotfixes restore the `sagTube()` conductor helper and use a versioned `app-v6.js` reference in `index.html` to prevent stale browser-cache errors.
+
+Continue Phase 6 from this saved point: audit the transformer 33 kV side → incomer CB → CT/VT → 33 kV bus → F1/F2/F3 isolators → feeder CBs → CTs → outgoing lines, with terminal-to-terminal conductor continuity and visible electrical breaks at switching devices.

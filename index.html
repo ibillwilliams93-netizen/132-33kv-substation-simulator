@@ -1,9 +1,19 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>132/33 kV Substation Simulator V5</title>
-<style>html,body,#app{margin:0;width:100%;height:100%;overflow:hidden;background:#071018}#msg{position:fixed;z-index:5;top:16px;left:16px;padding:10px 14px;background:#071018dd;color:#e8f0f5;border:1px solid #294356;border-radius:10px;font:600 14px Arial}</style>
+<style>
+*{box-sizing:border-box}html,body,#app{margin:0;width:100%;height:100%;overflow:hidden;background:#071018;font-family:Arial,sans-serif}
+#hud{position:fixed;z-index:5;inset:14px auto auto 14px;width:min(370px,calc(100vw - 28px));color:#e8f0f5;background:#071018e8;border:1px solid #294356;border-radius:12px;padding:12px;backdrop-filter:blur(8px)}
+#msg{font-weight:700;margin-bottom:8px}.row{display:flex;gap:6px;flex-wrap:wrap}.row+ .row{margin-top:6px}
+button{background:#142b39;color:#e8f0f5;border:1px solid #365467;border-radius:8px;padding:7px 9px;cursor:pointer}button:hover{background:#1d3b4c}.active{background:#8b321e}
+#sld{margin-top:9px;padding:8px;background:#09151d;border-radius:8px;font-size:12px;line-height:1.6}.hot{color:#ff765e}.lv{color:#ffb04c}.ok{color:#72d18b}
+#status{position:fixed;right:14px;top:14px;z-index:5;background:#071018e8;color:#fff;padding:10px;border:1px solid #294356;border-radius:10px;font-size:12px}
+</style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"}}</script>
-</head><body><div id="app"></div><div id="msg">132/33 kV Substation Simulator V5 — GitHub development build</div>
+</head><body><div id="app"></div>
+<div id="hud"><div id="msg">132/33 kV Substation Simulator V5</div>
+<div class="row"><button id="power">Start Power Flow</button><button id="fault">Protection Demo</button><button id="cut">Transformer Cutaway</button></div>
+<div class="row"><button id="lineIso">Line ISO: CLOSED</button><button id="cb132">132 CB: CLOSED</button><button id="busIso">Bus ISO: CLOSED</button><button id="cb33">33 CB: CLOSED</button></div>
+<div class="row"><button id="top">Top View</button><button id="reset">Reset Camera</button></div>
+<div id="sld"><b>LIVE SLD</b><br><span class="hot">132 kV LINE</span> → LA → ISO → CT → CVT → CB → ISO → <span class="hot">132 kV BUS</span> → TX 132/33 → <span class="lv">33 kV CB → CT/VT → BUS → FEEDERS</span><br><span id="state" class="ok">System normal</span></div></div>
+<div id="status">Red = 132 kV energy • Orange = 33 kV energy</div>
 <script type="module" src="./app.js"></script></body></html>

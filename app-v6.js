@@ -65,64 +65,46 @@ for(let z=-48;z<48;z+=10){const e=box([220,.035,.04],[25,-.08,z],copper);earthOb
 
 const PH132=[-6,0,6];
 
-// 132_KV_TRANSMISSION_TOWER — improved single-circuit 132 kV lattice strain tower outside the yard.
+// 132_KV_TRANSMISSION_TOWER — clearly visible lattice tower outside the switchyard fence.
 const tower132=new THREE.Group();scene.add(tower132);
-const TX=-128, TZ=0, TH=36;
+const TX=-128, TZ=0, TH=34;
 
-// Four tapered galvanized lattice legs with wider, realistic base.
+// Four tapered main legs.
 for(const sx of [-1,1])for(const sz of [-1,1]){
- beamBetween([TX+sx*5.8,0,TZ+sz*4.6],[TX+sx*.95,31.5,TZ+sz*.78],.20,gal);
+ beamBetween([TX+sx*5.0,0,TZ+sz*4.0],[TX+sx*1.15,TH,TZ+sz*.95],.22,gal);
 }
-// Body panels: horizontal frames plus X-bracing on all four faces.
-for(let y=1.8;y<30;y+=2.8){
- const t=y/32, wx=5.8-(4.65*t), wz=4.6-(3.65*t);
- const y2=Math.min(y+2.8,31.5),t2=y2/32,wx2=5.8-(4.65*t2),wz2=4.6-(3.65*t2);
- box([wx*2,.12,.12],[TX,y,TZ-wz],gal);box([wx*2,.12,.12],[TX,y,TZ+wz],gal);
- box([.12,.12,wz*2],[TX-wx,y,TZ],gal);box([.12,.12,wz*2],[TX+wx,y,TZ],gal);
- beamBetween([TX-wx,y,TZ-wz],[TX+wx2,y2,TZ-wz2],.065,gal);
- beamBetween([TX+wx,y,TZ-wz],[TX-wx2,y2,TZ-wz2],.065,gal);
- beamBetween([TX-wx,y,TZ+wz],[TX+wx2,y2,TZ+wz2],.065,gal);
- beamBetween([TX+wx,y,TZ+wz],[TX-wx2,y2,TZ+wz2],.065,gal);
- beamBetween([TX-wx,y,TZ-wz],[TX-wx2,y2,TZ+wz2],.055,gal);
- beamBetween([TX+wx,y,TZ-wz],[TX+wx2,y2,TZ+wz2],.055,gal);
+// Dense lattice body: horizontal ties plus crossed diagonals on front/back and sides.
+for(let y=2;y<29;y+=3){
+ const t=y/TH, wx=5.0-(3.75*t), wz=4.0-(3.0*t);
+ box([wx*2,.16,.16],[TX,y,TZ-wz],gal);box([wx*2,.16,.16],[TX,y,TZ+wz],gal);
+ box([.16,.16,wz*2],[TX-wx,y,TZ],gal);box([.16,.16,wz*2],[TX+wx,y,TZ],gal);
+ if(y<27){
+   const t2=(y+3)/TH, wx2=5.0-(3.75*t2), wz2=4.0-(3.0*t2);
+   beamBetween([TX-wx,y,TZ-wz],[TX+wx2,y+3,TZ-wz2],.085,gal);
+   beamBetween([TX+wx,y,TZ-wz],[TX-wx2,y+3,TZ-wz2],.085,gal);
+   beamBetween([TX-wx,y,TZ+wz],[TX+wx2,y+3,TZ+wz2],.085,gal);
+   beamBetween([TX+wx,y,TZ+wz],[TX-wx2,y+3,TZ+wz2],.085,gal);
+ }
 }
+// Tower peak and earthwire peak.
+beamBetween([TX-1.2,29,TZ],[TX,36,TZ],.18,gal);beamBetween([TX+1.2,29,TZ],[TX,36,TZ],.18,gal);
 
-// Strong waist and upper cage.
-box([5.2,.22,5.0],[TX,24.2,TZ],gal);
-for(const z of [-2.4,2.4])beamBetween([TX-2.6,24.2,TZ+z],[TX-.9,31.5,TZ+z*.35],.11,gal);
-for(const z of [-2.4,2.4])beamBetween([TX+2.6,24.2,TZ+z],[TX+.9,31.5,TZ+z*.35],.11,gal);
-
-// Three staggered phase crossarms, each a triangular truss rather than a single beam.
-const towerPhaseZ=[-7.2,0,7.2];
+// Three large phase crossarms, vertically staggered and extending across the tower.
+const towerPhaseZ=[-6,0,6];
 const towerPhaseY=[25.0,29.0,25.0];
 towerPhaseZ.forEach((z,i)=>{
- const y=towerPhaseY[i], dir=Math.sign(z)||1, tipZ=z;
- beamBetween([TX,y,TZ],[TX,y,tipZ],.16,gal);
- beamBetween([TX,y-1.45,TZ],[TX,y,tipZ],.10,gal);
- beamBetween([TX,y-1.45,TZ],[TX,y,tipZ*.52],.075,gal);
- const str=new THREE.Group();str.position.set(TX,y,tipZ);scene.add(str);
- // vertical strain/suspension string and metal terminal clamp
- ins(0,-3.8,0,3.8,brown,str);
- box([.42,.16,.42],[TX,y-3.95,tipZ],al);
- // phase conductor lands at the bottom clamp, then spans to the switchyard gantry
- sagTube([TX,y-3.95,tipZ],[-84.9,20.0,PH132[i]],1.55,.090,al);
+ const y=towerPhaseY[i];
+ beamBetween([TX,y,TZ],[TX,y,z],.20,gal);
+ beamBetween([TX,y-1.5,TZ],[TX,y,z],.10,gal);
+ const str=new THREE.Group();str.position.set(TX,y,z);scene.add(str);
+ ins(0,-3.4,0,3.4,brown,str);
+ // Each phase span runs from the actual tower insulator bottom to its gantry termination.
+ sagTube([TX,y-3.4,z],[-84.9,20.0,z],1.35,.095,al);
 });
-
-// Shield-wire peak and two earth/shield wires above the phases.
-beamBetween([TX-1.0,31.0,TZ],[TX,TH,TZ],.14,gal);
-beamBetween([TX+1.0,31.0,TZ],[TX,TH,TZ],.14,gal);
-for(const z of [-1.6,1.6]){
- beamBetween([TX,33.0,TZ],[TX,34.2,TZ+z],.08,gal);
- sagTube([TX,34.2,TZ+z],[-84.9,23.4,z],1.1,.035,steel);
-}
-
-// Concrete stub footings and base plates.
-for(const sx of [-1,1])for(const sz of [-1,1]){
- box([2.5,.65,2.5],[TX+sx*5.8,.325,TZ+sz*4.6],conc);
- box([1.15,.12,1.15],[TX+sx*5.8,.71,TZ+sz*4.6],steel);
-}
-reg(tower132,'132 kV Transmission Tower',132,'Single-circuit lattice strain tower with three phase crossarms, insulator strings, shield-wire peak and conductors feeding the incoming switchyard gantry.');
-label('132 kV TRANSMISSION TOWER',[TX,40,-10]);
+// Tower footing blocks.
+for(const sx of [-1,1])for(const sz of [-1,1])box([2.0,.55,2.0],[TX+sx*5,.275,TZ+sz*4],conc);
+reg(tower132,'132 kV Transmission Tower',132,'Lattice transmission tower outside the switchyard feeding the incoming gantry with one three-phase 132 kV circuit.');
+label('132 kV TRANSMISSION TOWER',[TX,39,-10]);
 
 // 132_KV_INCOMING — one grounded steel termination gantry, three phase terminations.
 const gantry132=new THREE.Group();scene.add(gantry132);
@@ -440,7 +422,7 @@ function particle(c){
 }
 const phaseZ132=[-6,0,6], phaseZ33=[-3.2,0,3.2];
 const phaseColorsFlow=[0xff3b30,0xffd21f,0x2677ff]; // R Y B
-const p132Line=phaseZ132.map((z,i)=>new THREE.CatmullRomCurve3([[TX,towerPhaseY[i]-3.95,towerPhaseZ[i]],[-116,22.0,(towerPhaseZ[i]+z)*.5],[-100,19.8,z],[-84.9,20,z],[-79.2,12,z],[-73,7,z],[T132.lineIsoSrc,4.85,z]].map(v=>new THREE.Vector3(...v))));
+const p132Line=phaseZ132.map((z,i)=>new THREE.CatmullRomCurve3([[TX,towerPhaseY[i]-3.4,z],[-116,21.5,z],[-100,19.8,z],[-84.9,20,z],[-79.2,12,z],[-73,7,z],[T132.lineIsoSrc,4.85,z]].map(v=>new THREE.Vector3(...v))));
 const p132AfterLineIso=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[T132.lineIsoDst,4.85,z],[T132.ct,4.85,z],[T132.cbSrc,4.85,z]].map(v=>new THREE.Vector3(...v))));
 const p132AfterCB=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[T132.cbDst,4.85,z],[T132.busIsoSrc,4.85,z]].map(v=>new THREE.Vector3(...v))));
 const p132Bus=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[T132.busIsoDst,4.85,z],[T132.busRise,7.2,z],[-10,10.5,z],[-7,11.7,z],[17,11.7,z],[39,11.7,z],[42,12,z],[45.5,14.2,z],[48.8,17,z]].map(v=>new THREE.Vector3(...v))));

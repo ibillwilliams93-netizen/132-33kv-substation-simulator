@@ -216,9 +216,16 @@ function focusLabel(s){
 }
 document.querySelectorAll('.sldNode').forEach(b=>b.addEventListener('click',()=>{const s=labels.find(x=>x.userData.labelText===b.dataset.label);if(s)focusLabel(s)}));
 document.querySelectorAll('.feederSld').forEach(b=>b.addEventListener('click',()=>{const i=Number(b.dataset.feeder),s=labels.find(x=>x.userData.labelText==='33 kV FEEDER '+(i+1));if(s)focusLabel(s);document.getElementById('eqInfo').textContent='Feeder '+(i+1)+': CB '+(state.feeders[i]?'CLOSED':'OPEN')+', ISO '+(state.feederIso[i]?'CLOSED':'OPEN')+(state.feederFault[i]?' • FAULT TRIPPED':'')}));
-renderer.domElement.addEventListener('pointerdown',ev=>{mouse.x=ev.clientX/innerWidth*2-1;mouse.y=-(ev.clientY/innerHeight)*2+1;ray.setFromCamera(mouse,camera);
+// V9 navigation: hold left mouse button and drag to orbit continuously around the current target.
+// OrbitControls already owns left-drag; these handlers make the interaction explicit and prevent
+// equipment picking when the user intended to rotate the view.
+let leftHold=false,leftDownX=0,leftDownY=0,leftDragged=false;
+renderer.domElement.addEventListener('pointerdown',ev=>{if(ev.button===0){leftHold=true;leftDownX=ev.clientX;leftDownY=ev.clientY;leftDragged=false}});
+renderer.domElement.addEventListener('pointermove',ev=>{if(leftHold&&Math.hypot(ev.clientX-leftDownX,ev.clientY-leftDownY)>5)leftDragged=true});
+addEventListener('pointerup',ev=>{if(ev.button===0)leftHold=false});
+renderer.domElement.addEventListener('pointerdown',ev=>{if(ev.button!==0)return;setTimeout(()=>{if(leftDragged)return;mouse.x=ev.clientX/innerWidth*2-1;mouse.y=-(ev.clientY/innerHeight)*2+1;ray.setFromCamera(mouse,camera);
 const lh=ray.intersectObjects(labels,false)[0];if(lh){focusLabel(lh.object);return}
-const h=ray.intersectObjects(scene.children,true)[0];if(!h)return;let o=h.object;while(o.parent&&!o.userData?.name)o=o.parent;if(o.userData?.name){document.getElementById('eqName').textContent=o.userData.name;document.getElementById('eqInfo').innerHTML='<b>'+o.userData.kv+' kV</b><br>'+o.userData.info}});
+const h=ray.intersectObjects(scene.children,true)[0];if(!h)return;let o=h.object;while(o.parent&&!o.userData?.name)o=o.parent;if(o.userData?.name){document.getElementById('eqName').textContent=o.userData.name;document.getElementById('eqInfo').innerHTML='<b>'+o.userData.kv+' kV</b><br>'+o.userData.info}},0)});
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 let labelMode=2;
 document.getElementById('labels').onclick=()=>{labelMode=(labelMode+1)%3;const b=document.getElementById('labels');b.textContent=labelMode===0?'Labels: OFF':labelMode===1?'Labels: NORMAL':'Labels: LARGE';labels.forEach(s=>{s.visible=labelMode!==0;s.scale.set(labelMode===2?10.8:7.2,labelMode===2?1.8:1.2,1)})};

@@ -99,6 +99,28 @@ cyl(.42,.45,[-3.5,10.45,3.8],M(0xb5b9b6,.55,.35),tx);
 for(const x of [-6,6])for(const z of [-4.7,4.7]){const w=cyl(.42,.5,[x,.2,z],black,tx,18);w.rotation.z=Math.PI/2}
 for(const z of [-3,3])torus(.34,.055,[-8.2,8.1,z],gal,tx,0);
 cyl(.38,.18,[6.2,8.8,5.8],M(0xe7e1d0,.05,.25),tx);box([.08,1.1,.08],[6.2,9.45,5.8],gal,tx);
+// V9 Phase 5B: transformer field accessories and civil containment details.
+// OLTC drive/selector enclosure and local mechanism cabinet (generic external representation)
+box([3.4,5.2,3.0],[-6.9,4.2,7.2],txmat,tx);box([1.8,2.2,.25],[-6.9,4.2,8.82],steel,tx);
+label('OLTC COMPARTMENT',[49,7.5,9.5]);
+// Neutral bushing and visible tank-to-earth bonds
+ins(3.8,9.9,5.1,3.0,porc,tx);cyl(.18,.5,[3.8,13.15,5.1],copper,tx);
+const txEarth1=tube([[48.2,1.0,-5.5],[47.2,.25,-6.5],[47.2,-.05,-6.5]],.055,copper);earthObjects.push(txEarth1);
+const txEarth2=tube([[63.8,1.0,5.5],[64.8,.25,6.5],[64.8,-.05,6.5]],.055,copper);earthObjects.push(txEarth2);
+// Oil level indicator on conservator and winding/oil temperature gauges
+cyl(.48,.16,[4.55,14.1,0],M(0xe7e1d0,.05,.25),tx);cyl(.32,.12,[7.9,8.2,5.9],M(0xe7e1d0,.05,.25),tx);cyl(.32,.12,[7.2,7.3,5.9],M(0xe7e1d0,.05,.25),tx);
+// Pressure relief device with discharge hood
+cyl(.48,.55,[-3.5,10.55,3.8],M(0xb5b9b6,.55,.35),tx);cyl(.62,.14,[-3.5,10.9,3.8],M(0xc8c8c2,.4,.35),tx);
+// Drain/sample valves low on tank
+cyl(.16,.75,[-8.75,1.45,-3.8],copper,tx);cyl(.16,.75,[8.75,1.45,3.8],copper,tx);
+// Transformer nameplate
+box([.08,1.55,3.2],[8.55,5.4,-2.2],M(0xd4d7d5,.7,.25),tx);
+// Oil containment bund wall and gravel-filled sump/drain point around transformer foundation
+for(const z of [-14,14])box([36,.65,.35],[56,.325,z],conc);
+for(const x of [38,74])box([.35,.65,28],[x,.325,0],conc);
+cyl(.5,.12,[71,.08,11],black);tube([[71,.12,11],[73,.12,13]],.08,black);
+// Extra radiator fan guards and manifold detail
+for(const side of [-1,1])for(const z of [-3,0,3])torus(.88,.045,[side*11.2,4.7,z],gal,tx,0);
 // bushings: HV taller, LV shorter
 [-5,0,5].forEach(z=>{ins(-7.2,9.9,z,6.5,brown,tx);torus(.62,.055,[-7.2,16.1,z],al,tx,Math.PI/2);ins(7.2,9.9,z*.65,3.8,porc,tx);box([1.15,.12,.2],[7.2,14,z*.65],al,tx)});
 // internal core/windings hidden until cutaway
@@ -115,7 +137,7 @@ for(const z of [-3.5,0,3.5]){
 const hvTag=label('132 kV HV WINDINGS',[51.5,8.2,-8.5]);hvTag.visible=false;cutObjects.push(hvTag);
 const fluxTag=label('ALTERNATING MAGNETIC FLUX',[56,5,-8.5]);fluxTag.visible=false;cutObjects.push(fluxTag);
 const lvTag=label('33 kV LV WINDINGS',[60.5,8.2,-8.5]);lvTag.visible=false;cutObjects.push(lvTag);
-reg(tx,'132/33 kV Power Transformer',132,'Transfers energy from the 132 kV system to the 33 kV system by electromagnetic induction. The windings are electrically isolated; energy is coupled through magnetic flux in the core.');label('132/33 kV POWER TRANSFORMER',[56,22,-11]);
+reg(tx,'132/33 kV Power Transformer',132,'Transfers energy from the 132 kV system to the 33 kV system by electromagnetic induction. The windings are electrically isolated; energy is coupled through magnetic flux in the core. V9 field detail includes conservator/Buchholz piping, breather, cooling radiators and fans, OLTC enclosure, marshalling kiosk, neutral bushing, gauges, pressure relief, tank earthing and oil containment.');label('132/33 kV POWER TRANSFORMER',[56,22,-11]);
 [-6,0,6].forEach((z,i)=>tube([[39,7.2,z],[48.8,17,z]],.085)); // to HV bushings
 // 33 kV yard
 const cb33g=new THREE.Group();scene.add(cb33g);[-3.2,0,3.2].forEach(z=>{pad(78,z,2.2,2);box([1.45,1.15,1.25],[78,.95,z],steel);ins(77.62,1.35,z,2.25,porc);ins(78.38,1.35,z,2.25,porc);box([1.25,.16,.28],[78,3.75,z],al)});reg(cb33g,'33 kV Transformer Incomer Circuit Breaker',33,'Controls and protects the transformer connection to the 33 kV bus.');label('33 kV INCOMER CB',[78,7,-8]);

@@ -127,9 +127,10 @@ const state={power:false,lineIso:true,cb132:true,busIso:true,cb33:true,fault:fal
 const flow132=[[],[],[]],flow33=[[],[],[]];
 function particle(c){
  const g=new THREE.Group();
- const core=new THREE.Mesh(new THREE.SphereGeometry(.24,12,10),new THREE.MeshBasicMaterial({color:c,toneMapped:false}));
- const glow=new THREE.Mesh(new THREE.SphereGeometry(.48,12,10),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.28,depthWrite:false,toneMapped:false}));
- g.add(glow,core);scene.add(g);return g
+ const core=new THREE.Mesh(new THREE.SphereGeometry(.30,14,12),new THREE.MeshBasicMaterial({color:c,toneMapped:false}));
+ const glow1=new THREE.Mesh(new THREE.SphereGeometry(.62,14,12),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.48,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}));
+ const glow2=new THREE.Mesh(new THREE.SphereGeometry(1.05,14,12),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.18,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}));
+ g.add(glow2,glow1,core);scene.add(g);return g
 }
 const phaseZ132=[-6,0,6], phaseZ33=[-3.2,0,3.2];
 const phaseColorsFlow=[0xff3b30,0xffd21f,0x2677ff]; // R Y B

@@ -144,7 +144,7 @@ function focusLabel(s){
  if(approach.lengthSq()<.01)approach.set(1,.35,1);
  approach.normalize();
  const endPos=target.clone().add(approach.multiplyScalar(20)).add(new THREE.Vector3(0,5.5,0));
- cameraFlight={start:performance.now(),duration:2400,fromPos:camera.position.clone(),toPos:endPos,fromTarget:controls.target.clone(),toTarget:target.clone()};
+ cameraFlight={start:performance.now(),duration:1200,fromPos:camera.position.clone(),toPos:endPos,fromTarget:controls.target.clone(),toTarget:target.clone()};
  document.getElementById('eqName').textContent=s.userData.labelText;
  document.getElementById('eqInfo').textContent='Moving to equipment…';
 }

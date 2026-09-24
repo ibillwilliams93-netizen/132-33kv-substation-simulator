@@ -105,6 +105,16 @@ cyl(.38,.18,[6.2,8.8,5.8],M(0xe7e1d0,.05,.25),tx);box([.08,1.1,.08],[6.2,9.45,5.
 const internals=new THREE.Group();tx.add(internals);internals.visible=false;
 for(const z of [-3.5,0,3.5]){box([1.3,6.4,1.3],[0,5,z],coreMat,internals);const hv=cyl(1.65,4.8,[0,5,z],hvMat,internals,28);const lv=cyl(1.25,5.2,[0,5,z],lvMat,internals,28)}
 box([1.3,1.1,9],[0,8.1,0],coreMat,internals);box([1.3,1.1,9],[0,1.9,0],coreMat,internals);
+// V9 Phase 5 transformer education: separate winding indications and magnetic-flux visualization.
+// These are conceptual training overlays; no primary current is shown jumping between windings.
+const fluxLoops=[];
+for(const z of [-3.5,0,3.5]){
+ const loop=new THREE.Mesh(new THREE.TorusGeometry(2.05,.10,10,44),new THREE.MeshBasicMaterial({color:0x69b7ff,transparent:true,opacity:.0,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}));
+ loop.rotation.x=Math.PI/2;loop.position.set(0,5,z);internals.add(loop);fluxLoops.push(loop);
+}
+const hvTag=label('132 kV HV WINDINGS',[51.5,8.2,-8.5]);hvTag.visible=false;cutObjects.push(hvTag);
+const fluxTag=label('ALTERNATING MAGNETIC FLUX',[56,5,-8.5]);fluxTag.visible=false;cutObjects.push(fluxTag);
+const lvTag=label('33 kV LV WINDINGS',[60.5,8.2,-8.5]);lvTag.visible=false;cutObjects.push(lvTag);
 reg(tx,'132/33 kV Power Transformer',132,'Transfers energy from the 132 kV system to the 33 kV system by electromagnetic induction. The windings are electrically isolated; energy is coupled through magnetic flux in the core.');label('132/33 kV POWER TRANSFORMER',[56,22,-11]);
 [-6,0,6].forEach((z,i)=>tube([[39,7.2,z],[48.8,17,z]],.085)); // to HV bushings
 // 33 kV yard
@@ -194,7 +204,7 @@ function runProtection(i){
 }
 document.getElementById('power').onclick=()=>{state.power=!state.power;ui()};
 document.getElementById('fault').onclick=()=>{state.fault=!state.fault;if(state.fault)state.cb132=false;else state.cb132=true;ui()};
-document.getElementById('cut').onclick=()=>{state.cut=!state.cut;tank.material.transparent=true;tank.material.opacity=state.cut?.18:1;internals.visible=state.cut;ui()};
+document.getElementById('cut').onclick=()=>{state.cut=!state.cut;tank.material.transparent=true;tank.material.opacity=state.cut?.14:1;internals.visible=state.cut;[hvTag,fluxTag,lvTag].forEach(s=>s.visible=state.cut);document.getElementById('eqName').textContent=state.cut?'TRANSFORMER CUTAWAY — ENERGY TRANSFER':'132/33 kV POWER TRANSFORMER';document.getElementById('eqInfo').innerHTML=state.cut?'<b>132 kV AC → magnetic flux → induced 33 kV AC</b><br>The HV and LV windings are electrically isolated. Alternating current in the HV winding establishes alternating magnetic flux in the laminated core. That changing flux links the LV winding and induces voltage by electromagnetic induction. The animation intentionally does not show electricity jumping between windings.':'Transformer cutaway closed.';ui()};
 document.getElementById('earth').onclick=()=>{state.earth=!state.earth;earthObjects.forEach(o=>{o.position.y=state.earth?.12:-.08;o.material=state.earth?M(0x2dcc66,.15,.35):copper});ui()};
 function view(p,t){camera.position.set(...p);controls.target.set(...t);controls.update()}
 document.getElementById('overview').onclick=()=>view([105,68,118],[25,5,0]);document.getElementById('incoming').onclick=()=>view([-48,25,46],[-48,5,0]);document.getElementById('transformer').onclick=()=>view([83,29,35],[56,8,0]);document.getElementById('yard33').onclick=()=>view([138,31,65],[110,4,0]);document.getElementById('top').onclick=()=>view([25,175,.1],[25,0,0]);
@@ -232,5 +242,5 @@ document.getElementById('labels').onclick=()=>{labelMode=(labelMode+1)%3;const b
 document.getElementById('controls').onclick=()=>{const p=document.getElementById('left');p.classList.toggle('control-hidden');document.getElementById('controls').textContent=p.classList.contains('control-hidden')?'Show Controls':'Hide Controls'};
 ui();let clock=0;renderer.setAnimationLoop(()=>{clock+=.0024;
  if(cameraFlight){const raw=Math.min(1,(performance.now()-cameraFlight.start)/cameraFlight.duration),k=easeInOutCubic(raw);camera.position.lerpVectors(cameraFlight.fromPos,cameraFlight.toPos,k);controls.target.lerpVectors(cameraFlight.fromTarget,cameraFlight.toTarget,k);if(raw>=1){document.getElementById('eqInfo').textContent='Equipment focused. Click the equipment itself for detailed training information.';cameraFlight=null}}
- controls.update();labels.forEach(s=>{if(labelMode!==0)s.visible=true});flow132.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e132();o.position.copy(p132[ph].getPoint((o.userData.t+clock)%1))}));flow33.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e33();o.position.copy(p33[ph].getPoint((o.userData.t+clock*1.12)%1))}));flowFeeders.forEach((fd,fi)=>fd.forEach((arr,ph)=>arr.forEach(o=>{o.visible=eFeeder(fi);o.position.copy(pFeeders[fi][ph].getPoint((o.userData.t+clock*1.18)%1))})));renderer.render(scene,camera)});
+ controls.update();labels.forEach(s=>{if(labelMode!==0&&!cutObjects.includes(s))s.visible=true});if(state.cut){fluxLoops.forEach((o,i)=>{o.material.opacity=.28+.24*(.5+.5*Math.sin(clock*16+i*1.7));const s=1+.08*Math.sin(clock*16+i*1.7);o.scale.setScalar(s)})}flow132.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e132();o.position.copy(p132[ph].getPoint((o.userData.t+clock)%1))}));flow33.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e33();o.position.copy(p33[ph].getPoint((o.userData.t+clock*1.12)%1))}));flowFeeders.forEach((fd,fi)=>fd.forEach((arr,ph)=>arr.forEach(o=>{o.visible=eFeeder(fi);o.position.copy(pFeeders[fi][ph].getPoint((o.userData.t+clock*1.18)%1))})));renderer.render(scene,camera)});
 }catch(err){const e=document.getElementById('err');e.style.display='block';e.textContent='3D simulator failed to initialize: '+err.message;console.error(err)}

@@ -14,6 +14,8 @@ function cyl(r,h,p,m=gal,parent=scene,seg=24){const o=new THREE.Mesh(new THREE.C
 function reg(g,name,kv,info){g.userData={name,kv,info};pick.push(g);return g}
 function tube(points,r=.07,m=al,parent=scene){const c=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));const o=new THREE.Mesh(new THREE.TubeGeometry(c,Math.max(12,points.length*8),r,8,false),m);o.castShadow=true;parent.add(o);return o}
 function pad(x,z,w=2.3,d=2.3){return box([w,.38,d],[x,.19,z],conc)}
+function torus(R,r,p,m=steel,parent=scene,rx=Math.PI/2){const o=new THREE.Mesh(new THREE.TorusGeometry(R,r,10,28),m);o.position.set(...p);o.rotation.x=rx;o.castShadow=true;parent.add(o);return o}
+function beamBetween(a,b,r=.07,m=gal,parent=scene){const A=new THREE.Vector3(...a),B=new THREE.Vector3(...b),mid=A.clone().add(B).multiplyScalar(.5);const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,A.distanceTo(B),8),m);o.position.copy(mid);o.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),B.clone().sub(A).normalize());o.castShadow=true;parent.add(o);return o}
 function ins(x,y,z,h=4.5,material=brown,parent=scene){const g=new THREE.Group();g.position.set(x,y,z);parent.add(g);cyl(.11,h,[0,h/2,0],steel,g);for(let a=.3;a<h;a+=.34)cyl(.36,.085,[0,a,0],material,g,18);cyl(.18,.18,[0,h+.05,0],gal,g);return g}
 function lattice(x,z,h=18){const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);for(const dx of [-.45,.45])for(const dz of [-.45,.45])box([.12,h,.12],[dx,h/2,dz],gal,g);for(let y=1;y<h;y+=1.8){for(const zz of [-.45,.45]){const b=box([1.15,.09,.09],[0,y,zz],gal,g);b.rotation.z=(y%3.6<1)?.55:-.55}}return g}
 function label(t,p){const c=document.createElement('canvas');c.width=512;c.height=84;const q=c.getContext('2d');q.fillStyle='#06131ddd';q.roundRect(2,2,508,80,13);q.fill();q.fillStyle='#fff';q.font='bold 25px Arial';q.textAlign='center';q.fillText(t,256,52);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),depthTest:false}));s.position.set(...p);s.scale.set(7.2,1.2,1);s.material.opacity=.72;scene.add(s);labels.push(s);return s}
@@ -42,17 +44,20 @@ label('132 kV INCOMING',[-88,26,-11]);
 // arresters shunt
 const la=new THREE.Group();scene.add(la);[-6,0,6].forEach(z=>{pad(-65,z,1.8,1.8);ins(-65,.4,z,4.7,brown);tube([[-69,9.5,z],[-65,5.3,z]],.05);const e=tube([[-65,.45,z],[-65,-.05,z]],.04,copper);earthObjects.push(e)});reg(la,'132 kV Surge Arresters',132,'Limits overvoltage by diverting surge current to earth. It is connected phase-to-earth, not in series with normal load current.');label('SURGE ARRESTERS',[-65,8.5,-10]);
 // disconnectors with real blades
-function disconnector(x,name){const g=new THREE.Group();scene.add(g);[-6,0,6].forEach(z=>{pad(x,z,4.4,2.4);ins(x-1.45,.4,z,4.7,brown);ins(x+1.45,.4,z,4.7,brown);const pivot=new THREE.Group();pivot.position.set(x-1.45,5.3,z);scene.add(pivot);const blade=box([3,.11,.14],[1.5,0,0],al,pivot);g.add(pivot);g.userData.blades=(g.userData.blades||[]);g.userData.blades.push(pivot)});reg(g,name,132,'Provides a visible isolation gap. It is not intended to interrupt fault current or normal load current.');return g}
+function disconnector(x,name){const g=new THREE.Group();scene.add(g);[-6,0,6].forEach(z=>{pad(x,z,4.4,2.4);ins(x-1.45,.4,z,4.7,brown);ins(x+1.45,.4,z,4.7,brown);const pivot=new THREE.Group();pivot.position.set(x-1.45,5.3,z);scene.add(pivot);const blade=box([3,.13,.18],[1.5,0,0],al,pivot);cyl(.18,.28,[2.92,0,0],copper,pivot);g.add(pivot);
+ box([3.8,.16,.16],[x,.62,z],gal);cyl(.12,4.5,[x,.62,z+.75],gal);beamBetween([x,.75,z+.75],[x-1.35,5.15,z],.06,gal);g.userData.blades=(g.userData.blades||[]);g.userData.blades.push(pivot)});reg(g,name,132,'Provides a visible isolation gap. It is not intended to interrupt fault current or normal load current.');return g}
 const lineDisc=disconnector(-53,'132 kV Line Disconnector');label('LINE DISCONNECTOR',[-53,8.8,-10]);
 // CT
-const ct=new THREE.Group();scene.add(ct);[-6,0,6].forEach(z=>{pad(-40,z);box([1.25,.7,1.25],[-40,.75,z],steel);ins(-40,1.05,z,4.1,brown);cyl(.7,.7,[-40,4,z],brown)});reg(ct,'132 kV Current Transformers',132,'Measures primary current for metering and protection. Secondary circuits are separate from the primary power conductor.');label('CURRENT TRANSFORMERS',[-40,8.8,-10]);
+const ct=new THREE.Group();scene.add(ct);[-6,0,6].forEach(z=>{pad(-40,z);box([1.25,.7,1.25],[-40,.75,z],steel);ins(-40,1.05,z,3.7,brown);cyl(.82,1.05,[-40,4.25,z],brown);torus(.78,.16,[-40,4.8,z],brown,scene,Math.PI/2);box([1.35,.16,.28],[-40,5.35,z],al)});reg(ct,'132 kV Current Transformers',132,'Measures primary current for metering and protection. Secondary circuits are separate from the primary power conductor.');label('CURRENT TRANSFORMERS',[-40,8.8,-10]);
 // CVT shunt measurement
-const cvt=new THREE.Group();scene.add(cvt);[-6,0,6].forEach(z=>{pad(-29,z);box([1.25,.8,1.25],[-29,.8,z],steel);ins(-29,1.2,z,5.2,brown)});reg(cvt,'132 kV CVT / VT',132,'Provides scaled voltage signals for metering, protection and synchronization; it does not carry the main load current.');label('CVT / VT',[-29,9.6,-10]);
+const cvt=new THREE.Group();scene.add(cvt);[-6,0,6].forEach(z=>{pad(-29,z);box([1.65,1.15,1.55],[-29,.95,z],steel);ins(-29,1.45,z,5.35,brown);cyl(.42,.6,[-29,6.95,z],steel);box([1.15,.12,.22],[-29,7.28,z],al)});reg(cvt,'132 kV CVT / VT',132,'Provides scaled voltage signals for metering, protection and synchronization; it does not carry the main load current.');label('CVT / VT',[-29,9.6,-10]);
 // breaker
-const breaker=new THREE.Group();scene.add(breaker);[-6,0,6].forEach(z=>{pad(-15,z,2.8,2.6);box([1.55,1.6,1.4],[-15,1.1,z],steel);ins(-15,1.8,z,4.2,brown);cyl(.43,1.25,[-15,5.2,z],steel)});box([3.2,2.4,2.2],[-15,1.2,10],steel);reg(breaker,'132 kV Circuit Breaker',132,'Interrupts load and fault current when commanded by protection or control systems.');label('132 kV CIRCUIT BREAKER',[-15,9.3,-10]);
+const breaker=new THREE.Group();scene.add(breaker);[-6,0,6].forEach(z=>{pad(-15,z,2.8,2.6);box([1.8,1.25,1.5],[-15,1,z],steel);ins(-15.42,1.55,z,3.35,porc);ins(-14.58,1.55,z,3.35,porc);cyl(.52,1.55,[-15,5.15,z],steel);box([1.9,.18,.35],[-15,5.95,z],al)});box([3.2,2.4,2.2],[-15,1.2,10],steel);reg(breaker,'132 kV Circuit Breaker',132,'Interrupts load and fault current when commanded by protection or control systems.');label('132 kV CIRCUIT BREAKER',[-15,9.3,-10]);
 const busDisc=disconnector(-2,'132 kV Bus Disconnector');label('BUS DISCONNECTOR',[-2,8.8,-10]);
 // primary conductor continuity; CVT taps are separate
 [-6,0,6].forEach(z=>{tube([[-69,9.5,z],[-56.1,5.75,z]],.085);tube([[-49.9,5.75,z],[-40,5.55,z],[-15,6.2,z],[-5.1,5.75,z]],.085);tube([[1.1,5.75,z],[8,7.2,z]],.085);tube([[-40,5.55,z],[-29,6.7,z]],.045)});
+// V8 bus support steel portals
+for(const x of [9,31]){for(const z of [-8,8])box([.22,7,.22],[x,3.5,z],gal);box([.28,.28,17],[x,6.7,0],gal)}
 // bus
 [-6,0,6].forEach(z=>{ins(10,.3,z,6.2,brown);ins(31,.3,z,6.2,brown);tube([[8,7.2,z],[39,7.2,z]],.115)});label('132 kV BUSBAR',[22,11,-10]);
 // transformer local group centered correctly
@@ -79,8 +84,12 @@ const buch=cyl(.32,.8,[2.2,11.25,0],M(0xb9a36d,.45,.4),tx);buch.rotation.z=Math.
 const cp=tube([[0,10.1,0],[1.8,11.25,0],[4.4,12.8,0]],.13,txmat,tx);
 cyl(.18,2.2,[5.2,10.9,4.8],gal,tx);cyl(.42,.75,[5.2,9.7,4.8],M(0xc7b6a0,.05,.3),tx);
 cyl(.42,.45,[-3.5,10.45,3.8],M(0xb5b9b6,.55,.35),tx);
+// V8 transformer undercarriage, gauges and lifting details
+for(const x of [-6,6])for(const z of [-4.7,4.7]){const w=cyl(.42,.5,[x,.2,z],black,tx,18);w.rotation.z=Math.PI/2}
+for(const z of [-3,3])torus(.34,.055,[-8.2,8.1,z],gal,tx,0);
+cyl(.38,.18,[6.2,8.8,5.8],M(0xe7e1d0,.05,.25),tx);box([.08,1.1,.08],[6.2,9.45,5.8],gal,tx);
 // bushings: HV taller, LV shorter
-[-5,0,5].forEach(z=>{ins(-7.2,9.9,z,6.5,brown,tx);ins(7.2,9.9,z*.65,3.8,porc,tx)});
+[-5,0,5].forEach(z=>{ins(-7.2,9.9,z,6.5,brown,tx);torus(.62,.055,[-7.2,16.1,z],al,tx,Math.PI/2);ins(7.2,9.9,z*.65,3.8,porc,tx);box([1.15,.12,.2],[7.2,14,z*.65],al,tx)});
 // internal core/windings hidden until cutaway
 const internals=new THREE.Group();tx.add(internals);internals.visible=false;
 for(const z of [-3.5,0,3.5]){box([1.3,6.4,1.3],[0,5,z],coreMat,internals);const hv=cyl(1.65,4.8,[0,5,z],hvMat,internals,28);const lv=cyl(1.25,5.2,[0,5,z],lvMat,internals,28)}
@@ -88,7 +97,7 @@ box([1.3,1.1,9],[0,8.1,0],coreMat,internals);box([1.3,1.1,9],[0,1.9,0],coreMat,i
 reg(tx,'132/33 kV Power Transformer',132,'Transfers energy from the 132 kV system to the 33 kV system by electromagnetic induction. The windings are electrically isolated; energy is coupled through magnetic flux in the core.');label('132/33 kV POWER TRANSFORMER',[56,22,-11]);
 [-6,0,6].forEach((z,i)=>tube([[39,7.2,z],[48.8,17,z]],.085)); // to HV bushings
 // 33 kV yard
-const cb33g=new THREE.Group();scene.add(cb33g);[-3.2,0,3.2].forEach(z=>{pad(78,z,2.2,2);box([1.15,1.4,1.1],[78,1,z],steel);ins(78,1.5,z,2.7,porc)});reg(cb33g,'33 kV Transformer Incomer Circuit Breaker',33,'Controls and protects the transformer connection to the 33 kV bus.');label('33 kV INCOMER CB',[78,7,-8]);
+const cb33g=new THREE.Group();scene.add(cb33g);[-3.2,0,3.2].forEach(z=>{pad(78,z,2.2,2);box([1.45,1.15,1.25],[78,.95,z],steel);ins(77.62,1.35,z,2.25,porc);ins(78.38,1.35,z,2.25,porc);box([1.25,.16,.28],[78,3.75,z],al)});reg(cb33g,'33 kV Transformer Incomer Circuit Breaker',33,'Controls and protects the transformer connection to the 33 kV bus.');label('33 kV INCOMER CB',[78,7,-8]);
 const inst33=new THREE.Group();scene.add(inst33);[-3.2,0,3.2].forEach(z=>{pad(88,z,1.8,1.8);box([.9,.55,.9],[88,.7,z],steel);ins(88,1,z,2.5,porc)});reg(inst33,'33 kV CT / VT',33,'Provides current and voltage measurements for 33 kV protection and metering.');label('33 kV CT / VT',[88,6.5,-8]);
 [-3.2,0,3.2].forEach((z,i)=>{tube([[63.2,14,z],[70,4.4,z],[78,4.25,z],[88,4,z],[94,4.5,z]],.07);ins(96,.3,z,3.7,porc);ins(116,.3,z,3.7,porc);tube([[94,4.5,z],[123,4.5,z]],.08)});label('33 kV BUSBAR',[106,8.2,-8]);
 // feeders with breaker-like poles
@@ -122,5 +131,5 @@ document.getElementById('overview').onclick=()=>view([105,68,118],[25,5,0]);docu
 // picking
 const ray=new THREE.Raycaster(),mouse=new THREE.Vector2();renderer.domElement.addEventListener('pointerdown',ev=>{mouse.x=ev.clientX/innerWidth*2-1;mouse.y=-(ev.clientY/innerHeight)*2+1;ray.setFromCamera(mouse,camera);const h=ray.intersectObjects(scene.children,true)[0];if(!h)return;let o=h.object;while(o.parent&&!o.userData?.name)o=o.parent;if(o.userData?.name){document.getElementById('eqName').textContent=o.userData.name;document.getElementById('eqInfo').innerHTML='<b>'+o.userData.kv+' kV</b><br>'+o.userData.info}});
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
-ui();let clock=0;renderer.setAnimationLoop(()=>{clock+=.0024;controls.update();flow132.forEach(o=>{o.visible=e132();o.position.copy(p132.getPoint((o.userData.t+clock)%1))});flow33.forEach(o=>{o.visible=e33();o.position.copy(p33.getPoint((o.userData.t+clock*1.12)%1))});renderer.render(scene,camera)});
+ui();let clock=0;renderer.setAnimationLoop(()=>{clock+=.0024;controls.update();const d=camera.position.distanceTo(controls.target);labels.forEach(s=>s.visible=d>48);flow132.forEach(o=>{o.visible=e132();o.position.copy(p132.getPoint((o.userData.t+clock)%1))});flow33.forEach(o=>{o.visible=e33();o.position.copy(p33.getPoint((o.userData.t+clock*1.12)%1))});renderer.render(scene,camera)});
 }catch(err){const e=document.getElementById('err');e.style.display='block';e.textContent='3D simulator failed to initialize: '+err.message;console.error(err)}

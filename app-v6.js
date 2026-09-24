@@ -11,9 +11,13 @@ controls.mouseButtons.MIDDLE=THREE.MOUSE.PAN;
 controls.mouseButtons.RIGHT=THREE.MOUSE.PAN;
 controls.screenSpacePanning=true;
 // Faster, more responsive mouse navigation
-controls.panSpeed=2.2;
-controls.rotateSpeed=1.35;
-controls.zoomSpeed=1.5;
+// Tuned mouse feel: smoother precision near equipment, responsive across the full yard.
+controls.enableDamping=true;
+controls.dampingFactor=.075;
+controls.panSpeed=1.45;
+controls.rotateSpeed=.88;
+controls.zoomSpeed=1.12;
+controls.zoomToCursor=true;
 renderer.domElement.addEventListener('auxclick',e=>{if(e.button===1)e.preventDefault()});
 renderer.domElement.addEventListener('mousedown',e=>{if(e.button===1)e.preventDefault()});
 scene.add(new THREE.HemisphereLight(0xeaf7ff,0x556052,2.15));const sun=new THREE.DirectionalLight(0xfff2d8,3.4);sun.position.set(-70,110,65);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-150;sun.shadow.camera.right=150;sun.shadow.camera.top=100;sun.shadow.camera.bottom=-100;scene.add(sun);
@@ -488,9 +492,15 @@ document.querySelectorAll('.feederSld').forEach(b=>b.addEventListener('click',()
 // OrbitControls already owns left-drag; these handlers make the interaction explicit and prevent
 // equipment picking when the user intended to rotate the view.
 let leftHold=false,leftDownX=0,leftDownY=0,leftDragged=false;
-renderer.domElement.addEventListener('pointerdown',ev=>{if(ev.button===0){leftHold=true;leftDownX=ev.clientX;leftDownY=ev.clientY;leftDragged=false}});
-renderer.domElement.addEventListener('pointermove',ev=>{if(leftHold&&Math.hypot(ev.clientX-leftDownX,ev.clientY-leftDownY)>5)leftDragged=true});
+renderer.domElement.style.touchAction='none';
+renderer.domElement.addEventListener('pointerdown',ev=>{
+ if(ev.button===0){leftHold=true;leftDownX=ev.clientX;leftDownY=ev.clientY;leftDragged=false}
+});
+renderer.domElement.addEventListener('pointermove',ev=>{
+ if(leftHold&&Math.hypot(ev.clientX-leftDownX,ev.clientY-leftDownY)>8)leftDragged=true
+});
 addEventListener('pointerup',ev=>{if(ev.button===0)leftHold=false});
+addEventListener('pointercancel',()=>{leftHold=false});
 renderer.domElement.addEventListener('pointerdown',ev=>{if(ev.button!==0)return;setTimeout(()=>{if(leftDragged)return;mouse.x=ev.clientX/innerWidth*2-1;mouse.y=-(ev.clientY/innerHeight)*2+1;ray.setFromCamera(mouse,camera);
 const lh=ray.intersectObjects(labels,false)[0];if(lh){focusLabel(lh.object);return}
 const h=ray.intersectObjects(scene.children,true)[0];if(!h)return;let o=h.object;while(o.parent&&!o.userData?.name)o=o.parent;if(o.userData?.name){document.getElementById('eqName').textContent=o.userData.name;document.getElementById('eqInfo').innerHTML='<b>'+o.userData.kv+' kV</b><br>'+o.userData.info}},0)});

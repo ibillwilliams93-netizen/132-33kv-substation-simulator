@@ -10,6 +10,10 @@ controls.mouseButtons.LEFT=THREE.MOUSE.ROTATE;
 controls.mouseButtons.MIDDLE=THREE.MOUSE.PAN;
 controls.mouseButtons.RIGHT=THREE.MOUSE.PAN;
 controls.screenSpacePanning=true;
+// Faster, more responsive mouse navigation
+controls.panSpeed=2.2;
+controls.rotateSpeed=1.35;
+controls.zoomSpeed=1.5;
 renderer.domElement.addEventListener('auxclick',e=>{if(e.button===1)e.preventDefault()});
 renderer.domElement.addEventListener('mousedown',e=>{if(e.button===1)e.preventDefault()});
 scene.add(new THREE.HemisphereLight(0xeaf7ff,0x556052,2.15));const sun=new THREE.DirectionalLight(0xfff2d8,3.4);sun.position.set(-70,110,65);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-150;sun.shadow.camera.right=150;sun.shadow.camera.top=100;sun.shadow.camera.bottom=-100;scene.add(sun);

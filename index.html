@@ -6,6 +6,7 @@
 #topbar{position:fixed;z-index:8;top:12px;left:12px;right:12px;height:52px;padding:8px 12px;display:flex;align-items:center;justify-content:space-between}.title{font-weight:800}.sub{font-size:11px;color:#9fb4c1}
 #left{position:fixed;z-index:8;left:12px;top:76px;width:285px;padding:10px}#right{position:fixed;z-index:8;right:12px;top:76px;width:275px;padding:12px}
 #bottom{position:fixed;z-index:8;bottom:12px;left:50%;transform:translateX(-50%);padding:8px;display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+#left.control-hidden{display:none}
 button{background:#132a38;color:#eaf2f7;border:1px solid #35566a;border-radius:8px;padding:7px 9px;cursor:pointer;font-size:12px}button:hover{background:#1b3a4b}.active{background:#7b2e21;border-color:#cf664f}.amber{color:#ffb454}.red{color:#ff7462}.green{color:#70d58c}.muted{color:#9eb1bd}
 h3{margin:2px 0 8px;font-size:13px}.status{display:grid;grid-template-columns:1fr auto;gap:4px;font-size:11px;margin-top:8px}.sld{margin-top:10px;background:#050c12;padding:9px;border-radius:8px;font-size:11px;line-height:1.55}
 #err{display:none;position:fixed;z-index:20;inset:20% 20%;padding:20px;background:#2b1111;color:#fff;border:1px solid #a33}
@@ -19,5 +20,5 @@ h3{margin:2px 0 8px;font-size:13px}.status{display:grid;grid-template-columns:1f
 <div class="status"><span>132 kV line</span><b id="sLine">DE-ENERGIZED</b><span>132 kV bus</span><b id="sBus">DE-ENERGIZED</b><span>Transformer</span><b id="sTx">OUT</b><span>33 kV bus</span><b id="s33">DE-ENERGIZED</b></div>
 <div class="sld"><b>LIVE SLD</b><br><span class="red">132 kV LINE</span> ─ LA ─ ISO ─ CT ─ CVT ─ CB ─ ISO ─ BUS<br>　　　　　　　　　　　　　│<br>　　　　　　　　　　　TX 132/33<br>　　　　　　　　　　　　　│<br><span class="amber">33 kV CB ─ CT/VT ─ BUS ─ FEEDERS</span></div></div>
 <div id="right" class="panel"><h3>SELECTED EQUIPMENT</h3><b id="eqName">Click equipment in the yard</b><p id="eqInfo" class="muted" style="font-size:12px;line-height:1.45">Select a major item to view its purpose and training note.</p></div>
-<div id="bottom" class="panel"><button id="overview">Overview</button><button id="incoming">132 kV Incoming</button><button id="transformer">Transformer</button><button id="yard33">33 kV Yard</button><button id="top">Top View</button></div>
+<div id="bottom" class="panel"><button id="overview">Overview</button><button id="incoming">132 kV Incoming</button><button id="transformer">Transformer</button><button id="yard33">33 kV Yard</button><button id="top">Top View</button><button id="labels">Labels: LARGE</button><button id="controls">Control Tab</button></div>
 <div id="err"></div><script type="module" src="./app-v6.js"></script></body></html>

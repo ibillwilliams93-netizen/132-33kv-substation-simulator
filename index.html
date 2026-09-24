@@ -1,5 +1,5 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>132/33 kV Substation Digital Twin V6</title>
+<title>132/33 kV Substation Digital Twin V7</title>
 <style>
 *{box-sizing:border-box}html,body,#app{margin:0;width:100%;height:100%;overflow:hidden;background:#071018;font-family:Inter,Arial,sans-serif;color:#eaf2f7}canvas{display:block}
 .panel{background:#07131de8;border:1px solid #29485b;border-radius:12px;backdrop-filter:blur(10px);box-shadow:0 10px 30px #0005}
@@ -13,7 +13,7 @@ h3{margin:2px 0 8px;font-size:13px}.status{display:grid;grid-template-columns:1f
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"}}</script>
 </head><body><div id="app"></div>
-<div id="topbar" class="panel"><div><div class="title">132/33 kV SUBSTATION DIGITAL TWIN — V6</div><div class="sub">Advanced AIS apprentice training environment</div></div><div id="mode" class="green">EXPLORE • SYSTEM NORMAL</div></div>
+<div id="topbar" class="panel"><div><div class="title">132/33 kV SUBSTATION DIGITAL TWIN — V7</div><div class="sub">Advanced realistic AIS apprentice training environment • Realism Pass 1</div></div><div id="mode" class="green">EXPLORE • SYSTEM NORMAL</div></div>
 <div id="left" class="panel"><h3>OPERATING MODES</h3><div><button id="power">Power Flow</button><button id="fault">Protection</button><button id="cut">Transformer</button><button id="earth">Earthing</button></div>
 <h3 style="margin-top:12px">SWITCHING</h3><div><button id="lineIso">Line ISO CLOSED</button><button id="cb132">132 CB CLOSED</button><button id="busIso">Bus ISO CLOSED</button><button id="cb33">33 CB CLOSED</button></div>
 <div class="status"><span>132 kV line</span><b id="sLine">DE-ENERGIZED</b><span>132 kV bus</span><b id="sBus">DE-ENERGIZED</b><span>Transformer</span><b id="sTx">OUT</b><span>33 kV bus</span><b id="s33">DE-ENERGIZED</b></div>

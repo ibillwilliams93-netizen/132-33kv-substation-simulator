@@ -13,12 +13,16 @@ controls.screenSpacePanning=true;
 // Faster, more responsive mouse navigation
 // Tuned mouse feel: smoother precision near equipment, responsive across the full yard.
 controls.enableDamping=true;
-controls.dampingFactor=.075;
-controls.panSpeed=1.45;
-controls.rotateSpeed=.88;
-controls.zoomSpeed=1.12;
+controls.dampingFactor=.055;
+controls.panSpeed=2.35;
+controls.rotateSpeed=1.55;
+controls.zoomSpeed=1.65;
 controls.zoomToCursor=true;
+controls.minDistance=.22;
+// Desktop navigation should react immediately but coast only slightly.
+controls.keyPanSpeed=18;
 renderer.domElement.addEventListener('auxclick',e=>{if(e.button===1)e.preventDefault()});
+renderer.domElement.addEventListener('wheel',e=>e.preventDefault(),{passive:false});
 renderer.domElement.addEventListener('mousedown',e=>{if(e.button===1)e.preventDefault()});
 scene.add(new THREE.HemisphereLight(0xeaf7ff,0x556052,2.15));const sun=new THREE.DirectionalLight(0xfff2d8,3.4);sun.position.set(-70,110,65);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-150;sun.shadow.camera.right=150;sun.shadow.camera.top=100;sun.shadow.camera.bottom=-100;scene.add(sun);
 const M=(c,metal=.1,rough=.65)=>new THREE.MeshStandardMaterial({color:c,metalness:metal,roughness:rough});
@@ -533,11 +537,19 @@ document.querySelectorAll('.feederSld').forEach(b=>b.addEventListener('click',()
 // equipment picking when the user intended to rotate the view.
 let leftHold=false,leftDownX=0,leftDownY=0,leftDragged=false;
 renderer.domElement.style.touchAction='none';
+renderer.domElement.style.cursor='grab';
+renderer.domElement.addEventListener('contextmenu',ev=>ev.preventDefault());
+renderer.domElement.addEventListener('pointerdown',ev=>{
+ if(ev.button===0)renderer.domElement.style.cursor='grabbing';
+});
+addEventListener('pointerup',()=>{renderer.domElement.style.cursor='grab'});
+addEventListener('pointercancel',()=>{renderer.domElement.style.cursor='grab'});
 renderer.domElement.addEventListener('pointerdown',ev=>{
  if(ev.button===0){leftHold=true;leftDownX=ev.clientX;leftDownY=ev.clientY;leftDragged=false}
 });
 renderer.domElement.addEventListener('pointermove',ev=>{
- if(leftHold&&Math.hypot(ev.clientX-leftDownX,ev.clientY-leftDownY)>8)leftDragged=true
+ // Small threshold keeps clicks reliable while making orbit respond almost immediately.
+ if(leftHold&&Math.hypot(ev.clientX-leftDownX,ev.clientY-leftDownY)>3)leftDragged=true
 });
 addEventListener('pointerup',ev=>{if(ev.button===0)leftHold=false});
 addEventListener('pointercancel',()=>{leftHold=false});

@@ -155,20 +155,22 @@ PH132.forEach(z=>{
  // CB load terminal -> bus ISO source terminal.
  tube([[-27.35,4.75,z],[-18.5,4.85,z]],.075);
  // Bus ISO load terminal -> bus take-off.
- tube([[-15.5,4.85,z],[-12.0,6.45,z],[-9.0,6.55,z]],.075);
+ tube([[-15.5,4.85,z],[-12.0,7.4,z],[-9.0,10.4,z],[-7.0,11.70,z]],.075);
 });
 
-// 132_KV_BUS — exactly three straight parallel phase conductors.
-// Each phase is supported directly by dedicated post insulators. No steel portal.
-for(const x of [-9,12,33]){
- PH132.forEach(z=>{
-   pad(x,z,1.20,1.20);
-   ins(x,.3,z,5.85,brown);
-   box([.40,.12,.30],[x,6.55,z],al);
- });
+// 132_KV_BUS — elevated on the new steel support frames.
+// The old ground-mounted brown bus-support insulators are intentionally removed.
+for(const x of [-7,17,39]){
+  for(const z of [-9,9])box([.40,9.0,.40],[x,4.5,z],gal);
+  box([.55,.45,19],[x,9.0,0],gal);
+  PH132.forEach(z=>{
+    ins(x,9.15,z,2.4,porc);
+    box([.80,.12,.35],[x,11.70,z],al);
+  });
 }
-PH132.forEach(z=>tube([[-9,6.55,z],[39,6.55,z]],.095));
-label('132 kV BUS',[12,9.1,-9]);
+// Exactly three elevated phase conductors, each landed on the top terminal of its white post insulators.
+PH132.forEach(z=>tube([[-7,11.70,z],[39,11.70,z]],.095));
+label('132 kV BUS',[17,14.5,-9]);
 
 // 132_KV_TRANSFORMER_CONNECTION is completed immediately after transformer
 // construction so each jumper can land on the actual HV bushing terminal.
@@ -252,12 +254,6 @@ for(const z of [-6,0,6]){
   torus(.42,.045,[-14.0,6.0,z],al,scene,Math.PI/2);
   tube([[-15,2.2,8],[-15,3.0,z]],.045,steel);
 }
-// 132 kV bus support portals with bracing and post-insulator terminal caps
-for(const x of [-7,17,39]){
-  for(const z of [-9,9]){box([.4,9,.4],[x,4.5,z],gal);beamBetween(new THREE.Vector3(x,1,z),new THREE.Vector3(x,8,z+(z<0?2:-2)),.07,gal)}
-  box([.55,.45,19],[x,9,0],gal);
-  for(const z of [-6,0,6]){ins(x,9.15,z,2.4,porc);box([.8,.12,.35],[x,11.7,z],al)}
-}
 // Flexible incoming jumpers: gantry → arrester/disconnector/measurement/CB chain visual continuity
 for(const z of [-6,0,6]){
   tube([[-48,10.95,z],[-45,10.2,z],[-42,7.2,z],[-40,5.25,z]],.075);
@@ -330,7 +326,7 @@ const fluxTag=label('ALTERNATING MAGNETIC FLUX',[56,5,-8.5]);fluxTag.visible=fal
 const lvTag=label('33 kV LV WINDINGS',[60.5,8.2,-8.5]);lvTag.visible=false;cutObjects.push(lvTag);
 reg(tx,'132/33 kV Power Transformer',132,'Transfers energy from the 132 kV system to the 33 kV system by electromagnetic induction. The windings are electrically isolated; energy is coupled through magnetic flux in the core. V9 field detail includes conservator/Buchholz piping, breather, cooling radiators and fans, OLTC enclosure, marshalling kiosk, neutral bushing, gauges, pressure relief, tank earthing and oil containment.');label('132/33 kV POWER TRANSFORMER',[56,22,-11]);
 // 132_KV_TRANSFORMER_CONNECTION — exactly three flexible jumpers, one per phase, terminated on actual HV bushing clamps.
-PH132.forEach(z=>{tube([[39,6.55,z],[42,7.4,z],[45.5,12.6,z],[48.8,17.0,z]],.085);torus(.30,.040,[39,6.55,z],al,scene,Math.PI/2)});
+PH132.forEach(z=>{tube([[39,11.70,z],[42,12.0,z],[45.5,14.2,z],[48.8,17.0,z]],.085);torus(.30,.040,[39,11.70,z],al,scene,Math.PI/2)});
 // 33 kV yard
 const cb33g=new THREE.Group();scene.add(cb33g);const cb33Contacts=[];[-3.2,0,3.2].forEach(z=>{pad(78,z,2.2,2);box([1.45,1.15,1.25],[78,.95,z],steel);ins(77.62,1.35,z,2.25,porc);ins(78.38,1.35,z,2.25,porc);const c33=new THREE.Group();c33.position.set(77.62,3.75,z);scene.add(c33);box([.76,.16,.28],[.38,0,0],al,c33);cb33Contacts.push(c33)});// 33 kV incomer receiving terminals
 [-3.2,0,3.2].forEach(z=>box([.28,.20,.34],[78.38,3.75,z],al));
@@ -415,7 +411,7 @@ const phaseColorsFlow=[0xff3b30,0xffd21f,0x2677ff]; // R Y B
 const p132Line=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-122,20.4,z],[-90,20.1,z],[-84.9,20,z],[-79.2,12,z],[-73,7,z],[-60.5,4.85,z]].map(v=>new THREE.Vector3(...v))));
 const p132AfterLineIso=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-57.5,4.85,z],[-48,4.82,z],[-28.65,4.75,z]].map(v=>new THREE.Vector3(...v))));
 const p132AfterCB=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-27.35,4.75,z],[-18.5,4.85,z]].map(v=>new THREE.Vector3(...v))));
-const p132Bus=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-15.5,4.85,z],[-12,6.45,z],[-9,6.55,z],[12,6.55,z],[33,6.55,z],[39,6.55,z],[42,7.4,z],[45.5,12.6,z],[48.8,17,z]].map(v=>new THREE.Vector3(...v))));
+const p132Bus=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-15.5,4.85,z],[-12,7.4,z],[-9,10.4,z],[-7,11.7,z],[17,11.7,z],[39,11.7,z],[42,12.0,z],[45.5,14.2,z],[48.8,17,z]].map(v=>new THREE.Vector3(...v))));
 const flow132Line=[[],[],[]],flow132AfterLineIso=[[],[],[]],flow132AfterCB=[[],[],[]],flow132Bus=[[],[],[]];
 const p33Up=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[63.2,14,z],[68.5,8,z],[73.5,4.25,z],[77.62,3.75,z]].map(v=>new THREE.Vector3(...v))));
 const p33=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[78.38,3.75,z],[88,4,z],[94,4.4,z],[96,7.9,z],[108,7.9,z],[120,7.9,z],[123,7.2,z]].map(v=>new THREE.Vector3(...v))));

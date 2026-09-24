@@ -280,17 +280,17 @@ const feederGroups=[],feederBreakerVisuals=[],feederDisconnectors=[],feederConta
    torus(.48,.11,[136,3.25,z],brown,g,Math.PI/2);
    // physically continuous phase conductor through bay
    tube([[127.8,3.8,z],[131.62,3.55,z]],.065,al,g);
-   // Feeder primary conductor remains electrically continuous through the dead-end clamp.
-   // The strain insulator mechanically ties that energized clamp back to the earthed gantry.
-   tube([[132.38,3.55,z],[136,3.35,z],[140.25,8.0,z],[141.85,8.0,z],[148,8.8,z],[162,10,z]],.065,al,g);
-   // Horizontal strain string: gantry steel -> porcelain discs -> live conductor clamp.
-   const sg=new THREE.Group();sg.position.set(141.0,8.0,z);scene.add(sg);
-   for(let n=0;n<6;n++){const d=cyl(.24,.11,[.15+n*.22,0,0],porc,sg,14);d.rotation.z=Math.PI/2}
-   box([.32,.14,.28],[1.52,0,0],al,sg);
+   // One continuous energized phase conductor through the outgoing support point.
+   // It does NOT pass through an insulator; the insulator only supports it from the earthed crossarm.
+   tube([[132.38,3.55,z],[136,3.35,z],[140.4,7.15,z],[141.0,7.15,z],[148,8.3,z],[162,10,z]],.065,al,g);
+   // Vertical support string from earthed gantry crossarm down to the live conductor clamp.
+   const sg=new THREE.Group();sg.position.set(141.0,9.65,z);scene.add(sg);
+   for(let n=0;n<7;n++)cyl(.25,.10,[0,-.20-n*.30,0],porc,sg,14);
+   box([.42,.14,.32],[0,-2.42,0],al,sg);
  });
  g.userData.disconnector=ds;feederDisconnectors.push(ds);
  // outgoing steel gantry
- box([.35,11,.35],[141,5.5,fz-5],gal,g);box([.35,11,.35],[141,5.5,fz+5],gal,g);box([.4,.4,11],[141,8,fz],gal,g);
+ box([.35,11,.35],[141,5.5,fz-5],gal,g);box([.35,11,.35],[141,5.5,fz+5],gal,g);box([.4,.4,11],[141,10,fz],gal,g);
  // breaker mechanism cabinet
  box([2.2,1.8,1.6],[132,.9,fz+6.2],steel,g);
  reg(g,'33 kV Feeder '+(i+1),33,'Complete outgoing feeder bay: bus take-off, disconnector, circuit breaker, current transformer and outgoing gantry. The circuit breaker interrupts load/fault current; the disconnector provides visible isolation after the breaker is open.');
@@ -325,7 +325,7 @@ const p33Up=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[63.2,14,z],[68.5,8,z],[
 const p33=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[78.38,3.75,z],[88,4,z],[94,4.4,z],[96,7.9,z],[108,7.9,z],[120,7.9,z],[123,7.2,z]].map(v=>new THREE.Vector3(...v))));
 const flow33Up=[[],[],[]];
 const feederZ=[-28,0,28];
-const pFeeders=feederZ.map(fz=>phaseZ33.map((z,ph)=>new THREE.CatmullRomCurve3([[123,7.2,z],[126,3.8,fz+[-3,0,3][ph]],[132,3.55,fz+[-3,0,3][ph]],[136,3.35,fz+[-3,0,3][ph]],[140.25,8.0,fz+[-3,0,3][ph]],[141.85,8.0,fz+[-3,0,3][ph]],[148,8.8,fz+[-3,0,3][ph]],[162,10,fz+[-3,0,3][ph]]].map(v=>new THREE.Vector3(...v)))));
+const pFeeders=feederZ.map(fz=>phaseZ33.map((z,ph)=>new THREE.CatmullRomCurve3([[123,7.2,z],[126,3.8,fz+[-3,0,3][ph]],[132,3.55,fz+[-3,0,3][ph]],[136,3.35,fz+[-3,0,3][ph]],[140.4,7.15,fz+[-3,0,3][ph]],[141,7.15,fz+[-3,0,3][ph]],[148,8.3,fz+[-3,0,3][ph]],[162,10,fz+[-3,0,3][ph]]].map(v=>new THREE.Vector3(...v)))));
 for(let ph=0;ph<3;ph++){
  for(let i=0;i<22;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/22;flow132[ph].push(o)}
  for(let i=0;i<8;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/8;flow33Up[ph].push(o)}

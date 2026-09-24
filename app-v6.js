@@ -111,8 +111,39 @@ reg(tx,'132/33 kV Power Transformer',132,'Transfers energy from the 132 kV syste
 const cb33g=new THREE.Group();scene.add(cb33g);[-3.2,0,3.2].forEach(z=>{pad(78,z,2.2,2);box([1.45,1.15,1.25],[78,.95,z],steel);ins(77.62,1.35,z,2.25,porc);ins(78.38,1.35,z,2.25,porc);box([1.25,.16,.28],[78,3.75,z],al)});reg(cb33g,'33 kV Transformer Incomer Circuit Breaker',33,'Controls and protects the transformer connection to the 33 kV bus.');label('33 kV INCOMER CB',[78,7,-8]);
 const inst33=new THREE.Group();scene.add(inst33);[-3.2,0,3.2].forEach(z=>{pad(88,z,1.8,1.8);box([.9,.55,.9],[88,.7,z],steel);ins(88,1,z,2.5,porc)});reg(inst33,'33 kV CT / VT',33,'Provides current and voltage measurements for 33 kV protection and metering.');label('33 kV CT / VT',[88,6.5,-8]);
 [-3.2,0,3.2].forEach((z,i)=>{tube([[63.2,14,z],[70,4.4,z],[78,4.25,z],[88,4,z],[94,4.5,z]],.07);ins(96,.3,z,3.7,porc);ins(116,.3,z,3.7,porc);tube([[94,4.5,z],[123,4.5,z]],.08)});label('33 kV BUSBAR',[106,8.2,-8]);
-// feeders with breaker-like poles
-[-28,0,28].forEach((fz,i)=>{const g=new THREE.Group();scene.add(g);[-3,0,3].forEach(d=>{pad(131,fz+d,1.8,1.8);box([1,1.2,1],[131,.9,fz+d],steel);ins(131,1.3,fz+d,2.5,porc)});box([.35,11,.35],[141,5.5,fz-5],gal);box([.35,11,.35],[141,5.5,fz+5],gal);box([.4,.4,11],[141,9,fz],gal);[-3,0,3].forEach((d,j)=>tube([[123,4.5,[-3.2,0,3.2][j]],[131,4,fz+d],[141,9,fz+d],[162,10,fz+d]],.065));reg(g,'33 kV Feeder '+(i+1),33,'Outgoing 33 kV feeder bay supplying the downstream sub-transmission/distribution network.');label('33 kV FEEDER '+(i+1),[141,13.5,fz])});
+// V9 Phase 2: three complete, visually distinct 33 kV feeder bays.
+// Each bay has bus take-off, three-phase disconnector, breaker, CT, outgoing gantry and conductors.
+const feederGroups=[],feederBreakerVisuals=[];
+[-28,0,28].forEach((fz,i)=>{
+ const g=new THREE.Group();scene.add(g);feederGroups.push(g);
+ const ds=new THREE.Group();scene.add(ds);
+ [-3,0,3].forEach((d,j)=>{
+   const z=fz+d, busz=[-3.2,0,3.2][j];
+   // bus take-off and feeder disconnector
+   tube([[123,4.5,busz],[126,4.5,z]],.065,al,g);
+   pad(127,z,2.2,1.6);ins(126.25,.4,z,3.15,porc,g);ins(127.75,.4,z,3.15,porc,g);
+   const pivot=new THREE.Group();pivot.position.set(126.25,3.8,z);scene.add(pivot);
+   box([1.55,.11,.14],[.78,0,0],al,pivot);ds.userData.blades=(ds.userData.blades||[]);ds.userData.blades.push(pivot);
+   // feeder circuit breaker
+   pad(132,z,2.3,1.8);box([1.25,.8,1.05],[132,.78,z],steel,g);
+   ins(131.62,1.1,z,2.25,porc,g);ins(132.38,1.1,z,2.25,porc,g);
+   box([1.25,.15,.24],[132,3.55,z],al,g);
+   // CT after breaker
+   pad(136,z,1.55,1.55);box([.8,.45,.8],[136,.6,z],steel,g);ins(136,.8,z,2.25,porc,g);
+   torus(.48,.11,[136,3.25,z],brown,g,Math.PI/2);
+   // physically continuous phase conductor through bay
+   tube([[127.8,3.8,z],[132,3.55,z],[136,3.35,z],[141,9,z],[162,10,z]],.065,al,g);
+ });
+ g.userData.disconnector=ds;
+ // outgoing steel gantry
+ box([.35,11,.35],[141,5.5,fz-5],gal,g);box([.35,11,.35],[141,5.5,fz+5],gal,g);box([.4,.4,11],[141,9,fz],gal,g);
+ // breaker mechanism cabinet
+ box([2.2,1.8,1.6],[132,.9,fz+6.2],steel,g);
+ reg(g,'33 kV Feeder '+(i+1),33,'Complete outgoing feeder bay: bus take-off, disconnector, circuit breaker, current transformer and outgoing gantry. The circuit breaker interrupts load/fault current; the disconnector provides visible isolation after the breaker is open.');
+ reg(ds,'33 kV Feeder '+(i+1)+' Disconnector',33,'Provides visible isolation for feeder '+(i+1)+'. Open the feeder circuit breaker before operating this disconnector.');
+ feederBreakerVisuals.push(g);
+ label('33 kV FEEDER '+(i+1),[141,13.5,fz]);
+});
 // control building and trenches
 box([25,7.5,17],[48,3.75,39],M(0xc8c5ba,0,.9));box([26,.5,18],[48,7.7,39],M(0x4c575d,.45,.5));box([175,.22,2],[25,.11,26],black);label('CONTROL & PROTECTION',[48,11.2,39]);
 // V7 realistic terminal hardware: clamps and phase marker discs at major connection points
@@ -146,7 +177,7 @@ for(let ph=0;ph<3;ph++){
 }
 const e132=()=>state.power&&state.lineIso&&state.cb132&&state.busIso&&!state.fault;const e33=()=>e132()&&state.cb33;const eFeeder=i=>e33()&&state.feeders[i];
 function blades(g,closed){(g.userData.blades||[]).forEach(b=>b.rotation.z=closed?0:-.7)}
-function ui(){blades(lineDisc,state.lineIso);blades(busDisc,state.busIso);for(const [id,key,n] of [['lineIso','lineIso','Line ISO'],['cb132','cb132','132 CB'],['busIso','busIso','Bus ISO'],['cb33','cb33','33 CB']])document.getElementById(id).textContent=n+' '+(state[key]?'CLOSED':'OPEN');document.getElementById('power').classList.toggle('active',state.power);document.getElementById('fault').classList.toggle('active',state.fault);document.getElementById('cut').classList.toggle('active',state.cut);document.getElementById('earth').classList.toggle('active',state.earth);document.getElementById('sLine').textContent=state.power?'ENERGIZED':'DE-ENERGIZED';document.getElementById('sBus').textContent=e132()?'ENERGIZED':'DE-ENERGIZED';document.getElementById('sTx').textContent=e132()?'IN SERVICE':'OUT';document.getElementById('s33').textContent=e33()?'ENERGIZED':'DE-ENERGIZED';for(let i=0;i<3;i++){const b=document.getElementById('f'+(i+1));b.textContent='F'+(i+1)+' CB '+(state.feeders[i]?'CLOSED':'OPEN');b.classList.toggle('active',!state.feeders[i])}document.getElementById('mode').textContent=state.training?'TRAINING • SWITCHING EXERCISE':state.fault?'PROTECTION • FAULT TRIPPED':state.cut?'TRANSFORMER • CUTAWAY':state.earth?'EARTHING • GRID VIEW':state.power?'POWER FLOW • LIVE':'EXPLORE • SYSTEM NORMAL'}
+function ui(){blades(lineDisc,state.lineIso);blades(busDisc,state.busIso);for(const [id,key,n] of [['lineIso','lineIso','Line ISO'],['cb132','cb132','132 CB'],['busIso','busIso','Bus ISO'],['cb33','cb33','33 CB']])document.getElementById(id).textContent=n+' '+(state[key]?'CLOSED':'OPEN');document.getElementById('power').classList.toggle('active',state.power);document.getElementById('fault').classList.toggle('active',state.fault);document.getElementById('cut').classList.toggle('active',state.cut);document.getElementById('earth').classList.toggle('active',state.earth);document.getElementById('sLine').textContent=state.power?'ENERGIZED':'DE-ENERGIZED';document.getElementById('sBus').textContent=e132()?'ENERGIZED':'DE-ENERGIZED';document.getElementById('sTx').textContent=e132()?'IN SERVICE':'OUT';document.getElementById('s33').textContent=e33()?'ENERGIZED':'DE-ENERGIZED';for(let i=0;i<3;i++){const b=document.getElementById('f'+(i+1));b.textContent='F'+(i+1)+' CB '+(state.feeders[i]?'CLOSED':'OPEN');b.classList.toggle('active',!state.feeders[i]);if(feederBreakerVisuals[i])feederBreakerVisuals[i].traverse(o=>{if(o.isMesh&&o.material&&o.material.emissive)o.material.emissiveIntensity=state.feeders[i]?0:.12})}document.getElementById('mode').textContent=state.training?'TRAINING • SWITCHING EXERCISE':state.fault?'PROTECTION • FAULT TRIPPED':state.cut?'TRANSFORMER • CUTAWAY':state.earth?'EARTHING • GRID VIEW':state.power?'POWER FLOW • LIVE':'EXPLORE • SYSTEM NORMAL'}
 function toggle(id,key){document.getElementById(id).onclick=()=>{if((key==='lineIso'||key==='busIso')&&state.power&&state.cb132&&state[key]){document.getElementById('eqName').textContent='SWITCHING WARNING';document.getElementById('eqInfo').textContent='Open the associated circuit breaker before opening a disconnector under load.';return}state[key]=!state[key];ui()}}
 toggle('lineIso','lineIso');toggle('cb132','cb132');toggle('busIso','busIso');toggle('cb33','cb33');
 for(let i=0;i<3;i++)document.getElementById('f'+(i+1)).onclick=()=>{state.feeders[i]=!state.feeders[i];document.getElementById('eqName').textContent='33 kV FEEDER '+(i+1);document.getElementById('eqInfo').textContent=state.feeders[i]?'Feeder breaker closed. Feeder is available to energize from the 33 kV bus.':'Feeder breaker open. Power flow is isolated on this feeder only.';ui()};

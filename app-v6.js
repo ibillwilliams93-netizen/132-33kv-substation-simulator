@@ -121,25 +121,40 @@ box([2.3,1.7,1.7],[-27,.85,9.0],steel);
 reg(breaker,'132 kV Circuit Breaker',132,'Interrupts normal load and fault current.');
 label('132 kV CB',[-27,7.4,-10]);
 
-const busDisc=disconnector(-16,'132 kV Bus Disconnector');label('BUS ISO',[-16,7.2,-10]);
+// Dedicated bus disconnector: exactly two supports and one moving blade per phase.
+// No portal/crossarm is used here; each phase is independently supported from grade.
+const busDisc=new THREE.Group();scene.add(busDisc);busDisc.userData.blades=[];
+[-6,0,6].forEach(z=>{
+ pad(-16,z,4.1,1.65);
+ ins(-17.35,.3,z,4.15,brown);ins(-14.65,.3,z,4.15,brown);
+ box([.34,.14,.30],[-17.35,4.65,z],al);box([.34,.14,.30],[-14.65,4.65,z],al);
+ const blade=new THREE.Group();blade.position.set(-17.35,4.65,z);scene.add(blade);
+ box([2.7,.12,.16],[1.35,0,0],al,blade);
+ busDisc.add(blade);busDisc.userData.blades.push(blade)
+});
+reg(busDisc,'132 kV Bus Disconnector',132,'Visible isolation between the circuit breaker and 132 kV bus. Not a load-breaking device.');
+label('BUS ISO',[-16,7.0,-9]);
 
-// Main three-phase conductors. No fixed geometry bridges an ISO or CB.
+// Main three-phase conductors. Every switching device is a genuine break in fixed conductor geometry.
 [-6,0,6].forEach(z=>{
  tube([[-72,7.0,z],[-59.35,4.65,z]],.075);
  tube([[-56.65,4.65,z],[-47,4.8,z],[-27.55,4.7,z]],.075);
  tube([[-42.5,4.77,z],[-38,5.0,z]],.032); // CVT shunt tap only
  tube([[-26.45,4.7,z],[-17.35,4.65,z]],.075);
- tube([[-14.65,4.65,z],[-10,7.0,z]],.075)
+ // Short flexible jumper from bus ISO receiving terminal to its phase bus.
+ tube([[-14.65,4.65,z],[-11.5,6.35,z],[-8,6.55,z]],.075)
 });
 
-// Minimal bus: only two support locations, three post insulators at each.
-for(const x of [-8,18]){
+// Three straight, parallel bus phases. Dedicated post supports only; no surrounding steel portal.
+for(const x of [-8,12,32]){
  [-6,0,6].forEach(z=>{
-   pad(x,z,1.25,1.25);ins(x,.3,z,5.95,brown);box([.38,.12,.30],[x,6.55,z],al)
+   pad(x,z,1.20,1.20);
+   ins(x,.3,z,5.85,brown);
+   box([.38,.12,.30],[x,6.55,z],al)
  })
 }
-[-6,0,6].forEach(z=>tube([[-10,7.0,z],[39,7.0,z]],.095));
-label('132 kV BUSBAR',[10,9.8,-10]);
+[-6,0,6].forEach(z=>tube([[-8,6.55,z],[39,6.55,z]],.095));
+label('132 kV BUSBAR',[12,9.2,-9]);
 
 // transformer local group centered correctly
 box([32,.55,28],[56,.275,0],conc);for(const [s,p] of [[[34,.7,1],[56,.35,-15]],[[34,.7,1],[56,.35,15]],[[1,.7,30],[39,.35,0]],[[1,.7,30],[73,.35,0]]])box(s,p,conc);
@@ -298,7 +313,7 @@ const hvTag=label('132 kV HV WINDINGS',[51.5,8.2,-8.5]);hvTag.visible=false;cutO
 const fluxTag=label('ALTERNATING MAGNETIC FLUX',[56,5,-8.5]);fluxTag.visible=false;cutObjects.push(fluxTag);
 const lvTag=label('33 kV LV WINDINGS',[60.5,8.2,-8.5]);lvTag.visible=false;cutObjects.push(lvTag);
 reg(tx,'132/33 kV Power Transformer',132,'Transfers energy from the 132 kV system to the 33 kV system by electromagnetic induction. The windings are electrically isolated; energy is coupled through magnetic flux in the core. V9 field detail includes conservator/Buchholz piping, breather, cooling radiators and fans, OLTC enclosure, marshalling kiosk, neutral bushing, gauges, pressure relief, tank earthing and oil containment.');label('132/33 kV POWER TRANSFORMER',[56,22,-11]);
-[-6,0,6].forEach(z=>{tube([[39,7.0,z],[42,8.3,z],[45,12.8,z],[48.8,17,z]],.09);torus(.34,.045,[39,7.0,z],al,scene,Math.PI/2)}); // to HV bushings
+[-6,0,6].forEach(z=>{tube([[39,6.55,z],[42,8.3,z],[45,12.8,z],[48.8,17,z]],.09);torus(.34,.045,[39,6.55,z],al,scene,Math.PI/2)}); // to HV bushings
 // 33 kV yard
 const cb33g=new THREE.Group();scene.add(cb33g);const cb33Contacts=[];[-3.2,0,3.2].forEach(z=>{pad(78,z,2.2,2);box([1.45,1.15,1.25],[78,.95,z],steel);ins(77.62,1.35,z,2.25,porc);ins(78.38,1.35,z,2.25,porc);const c33=new THREE.Group();c33.position.set(77.62,3.75,z);scene.add(c33);box([.76,.16,.28],[.38,0,0],al,c33);cb33Contacts.push(c33)});// 33 kV incomer receiving terminals
 [-3.2,0,3.2].forEach(z=>box([.28,.20,.34],[78.38,3.75,z],al));
@@ -383,7 +398,7 @@ const phaseColorsFlow=[0xff3b30,0xffd21f,0x2677ff]; // R Y B
 const p132Line=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-122,20.5,z],[-90,20.2,z],[-80,20.6,z],[-72,7,z],[-59.35,4.65,z]].map(v=>new THREE.Vector3(...v))));
 const p132AfterLineIso=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-56.65,4.65,z],[-47,4.8,z],[-27.55,4.7,z]].map(v=>new THREE.Vector3(...v))));
 const p132AfterCB=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-26.45,4.7,z],[-17.35,4.65,z]].map(v=>new THREE.Vector3(...v))));
-const p132Bus=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-14.65,4.65,z],[-10,7,z],[10,7,z],[39,7,z],[45,12.8,z],[48.8,17,z]].map(v=>new THREE.Vector3(...v))));
+const p132Bus=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-14.65,4.65,z],[-11.5,6.35,z],[-8,6.55,z],[12,6.55,z],[32,6.55,z],[39,6.55,z],[45,12.8,z],[48.8,17,z]].map(v=>new THREE.Vector3(...v))));
 const flow132Line=[[],[],[]],flow132AfterLineIso=[[],[],[]],flow132AfterCB=[[],[],[]],flow132Bus=[[],[],[]];
 const p33Up=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[63.2,14,z],[68.5,8,z],[73.5,4.25,z],[77.62,3.75,z]].map(v=>new THREE.Vector3(...v))));
 const p33=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[78.38,3.75,z],[88,4,z],[94,4.4,z],[96,7.9,z],[108,7.9,z],[120,7.9,z],[123,7.2,z]].map(v=>new THREE.Vector3(...v))));

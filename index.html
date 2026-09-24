@@ -1,19 +1,23 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>132/33 kV Substation Simulator V5</title>
+<title>132/33 kV Substation Digital Twin V6</title>
 <style>
-*{box-sizing:border-box}html,body,#app{margin:0;width:100%;height:100%;overflow:hidden;background:#071018;font-family:Arial,sans-serif}
-#hud{position:fixed;z-index:5;inset:14px auto auto 14px;width:min(370px,calc(100vw - 28px));color:#e8f0f5;background:#071018e8;border:1px solid #294356;border-radius:12px;padding:12px;backdrop-filter:blur(8px)}
-#msg{font-weight:700;margin-bottom:8px}.row{display:flex;gap:6px;flex-wrap:wrap}.row+ .row{margin-top:6px}
-button{background:#142b39;color:#e8f0f5;border:1px solid #365467;border-radius:8px;padding:7px 9px;cursor:pointer}button:hover{background:#1d3b4c}.active{background:#8b321e}
-#sld{margin-top:9px;padding:8px;background:#09151d;border-radius:8px;font-size:12px;line-height:1.6}.hot{color:#ff765e}.lv{color:#ffb04c}.ok{color:#72d18b}
-#status{position:fixed;right:14px;top:14px;z-index:5;background:#071018e8;color:#fff;padding:10px;border:1px solid #294356;border-radius:10px;font-size:12px}
+*{box-sizing:border-box}html,body,#app{margin:0;width:100%;height:100%;overflow:hidden;background:#071018;font-family:Inter,Arial,sans-serif;color:#eaf2f7}canvas{display:block}
+.panel{background:#07131de8;border:1px solid #29485b;border-radius:12px;backdrop-filter:blur(10px);box-shadow:0 10px 30px #0005}
+#topbar{position:fixed;z-index:8;top:12px;left:12px;right:12px;height:52px;padding:8px 12px;display:flex;align-items:center;justify-content:space-between}.title{font-weight:800}.sub{font-size:11px;color:#9fb4c1}
+#left{position:fixed;z-index:8;left:12px;top:76px;width:285px;padding:10px}#right{position:fixed;z-index:8;right:12px;top:76px;width:275px;padding:12px}
+#bottom{position:fixed;z-index:8;bottom:12px;left:50%;transform:translateX(-50%);padding:8px;display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+button{background:#132a38;color:#eaf2f7;border:1px solid #35566a;border-radius:8px;padding:7px 9px;cursor:pointer;font-size:12px}button:hover{background:#1b3a4b}.active{background:#7b2e21;border-color:#cf664f}.amber{color:#ffb454}.red{color:#ff7462}.green{color:#70d58c}.muted{color:#9eb1bd}
+h3{margin:2px 0 8px;font-size:13px}.status{display:grid;grid-template-columns:1fr auto;gap:4px;font-size:11px;margin-top:8px}.sld{margin-top:10px;background:#050c12;padding:9px;border-radius:8px;font-size:11px;line-height:1.55}
+#err{display:none;position:fixed;z-index:20;inset:20% 20%;padding:20px;background:#2b1111;color:#fff;border:1px solid #a33}
+@media(max-width:850px){#right{display:none}#left{width:240px}.sub{display:none}#bottom{width:94%}}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"}}</script>
 </head><body><div id="app"></div>
-<div id="hud"><div id="msg">132/33 kV Substation Simulator V5</div>
-<div class="row"><button id="power">Start Power Flow</button><button id="fault">Protection Demo</button><button id="cut">Transformer Cutaway</button></div>
-<div class="row"><button id="lineIso">Line ISO: CLOSED</button><button id="cb132">132 CB: CLOSED</button><button id="busIso">Bus ISO: CLOSED</button><button id="cb33">33 CB: CLOSED</button></div>
-<div class="row"><button id="top">Top View</button><button id="reset">Reset Camera</button></div>
-<div id="sld"><b>LIVE SLD</b><br><span class="hot">132 kV LINE</span> → LA → ISO → CT → CVT → CB → ISO → <span class="hot">132 kV BUS</span> → TX 132/33 → <span class="lv">33 kV CB → CT/VT → BUS → FEEDERS</span><br><span id="state" class="ok">System normal</span></div></div>
-<div id="status">Red = 132 kV energy • Orange = 33 kV energy</div>
-<script type="module" src="./app.js"></script></body></html>
+<div id="topbar" class="panel"><div><div class="title">132/33 kV SUBSTATION DIGITAL TWIN — V6</div><div class="sub">Advanced AIS apprentice training environment</div></div><div id="mode" class="green">EXPLORE • SYSTEM NORMAL</div></div>
+<div id="left" class="panel"><h3>OPERATING MODES</h3><div><button id="power">Power Flow</button><button id="fault">Protection</button><button id="cut">Transformer</button><button id="earth">Earthing</button></div>
+<h3 style="margin-top:12px">SWITCHING</h3><div><button id="lineIso">Line ISO CLOSED</button><button id="cb132">132 CB CLOSED</button><button id="busIso">Bus ISO CLOSED</button><button id="cb33">33 CB CLOSED</button></div>
+<div class="status"><span>132 kV line</span><b id="sLine">DE-ENERGIZED</b><span>132 kV bus</span><b id="sBus">DE-ENERGIZED</b><span>Transformer</span><b id="sTx">OUT</b><span>33 kV bus</span><b id="s33">DE-ENERGIZED</b></div>
+<div class="sld"><b>LIVE SLD</b><br><span class="red">132 kV LINE</span> ─ LA ─ ISO ─ CT ─ CVT ─ CB ─ ISO ─ BUS<br>　　　　　　　　　　　　　│<br>　　　　　　　　　　　TX 132/33<br>　　　　　　　　　　　　　│<br><span class="amber">33 kV CB ─ CT/VT ─ BUS ─ FEEDERS</span></div></div>
+<div id="right" class="panel"><h3>SELECTED EQUIPMENT</h3><b id="eqName">Click equipment in the yard</b><p id="eqInfo" class="muted" style="font-size:12px;line-height:1.45">Select a major item to view its purpose and training note.</p></div>
+<div id="bottom" class="panel"><button id="overview">Overview</button><button id="incoming">132 kV Incoming</button><button id="transformer">Transformer</button><button id="yard33">33 kV Yard</button><button id="top">Top View</button></div>
+<div id="err"></div><script type="module" src="./app-v6.js"></script></body></html>

@@ -82,7 +82,16 @@ PH132.forEach(z=>{
 reg(la,'132 kV Surge Arresters',132,'Three phase-to-earth surge arresters. They divert surge current to earth and are not in the normal load-current path.');
 label('LA',[-69,7.0,-9]);
 
-// Reusable 132 kV centre-break disconnector. Fixed conductors never bridge it.
+// 132 kV terminal map. Every fixed conductor is generated only between these coordinates.
+const T132={
+ lineIsoSrc:-60.5,lineIsoDst:-57.5,
+ ct:-48.0,
+ cbSrc:-34.8,cbDst:-32.2,
+ busIsoSrc:-23.5,busIsoDst:-20.5,
+ busRise:-15.0
+};
+
+// Reusable three-pole centre-break disconnector: exactly six posts + three moving blades.
 function make132Disconnector(x,name){
  const g=new THREE.Group();scene.add(g);g.userData.blades=[];
  PH132.forEach(z=>{
@@ -91,10 +100,9 @@ function make132Disconnector(x,name){
    box([.34,.14,.30],[x-1.5,4.85,z],al);box([.34,.14,.30],[x+1.5,4.85,z],al);
    const blade=new THREE.Group();blade.position.set(x-1.5,4.85,z);scene.add(blade);
    box([3.0,.12,.17],[1.5,0,0],al,blade);
-   cyl(.14,.20,[2.92,0,0],copper,blade);
    g.add(blade);g.userData.blades.push(blade);
  });
- reg(g,name,132,'Three-pole visible isolation device. The moving blade is the only bridge between source and load terminals.');
+ reg(g,name,132,'Three-pole visible isolation device. Fixed conductors stop at its terminals; only the moving blade bridges the air gap.');
  return g
 }
 
@@ -102,60 +110,60 @@ function make132Disconnector(x,name){
 const lineDisc=make132Disconnector(-59,'132 kV Line Disconnector');
 label('LINE ISO',[-59,7.2,-9]);
 
-// 132_KV_CT — exactly three series CT poles.
+// 132_KV_CT — one clean series pole per phase, aligned directly below the primary conductor.
 const ct=new THREE.Group();scene.add(ct);
 PH132.forEach(z=>{
- pad(-48,z,1.55,1.55);
- box([1.05,.60,1.05],[-48,.65,z],steel);
- ins(-48,1.0,z,3.25,brown);
- torus(.70,.14,[-48,4.40,z],brown,scene,Math.PI/2);
- box([.44,.12,.30],[-48,4.82,z],al);
+ pad(T132.ct,z,1.65,1.65);
+ box([1.15,.55,1.15],[T132.ct,.62,z],steel);
+ ins(T132.ct,.9,z,3.45,brown);
+ torus(.72,.14,[T132.ct,4.45,z],brown,scene,Math.PI/2);
+ box([.48,.12,.30],[T132.ct,4.85,z],al);
 });
-reg(ct,'132 kV Current Transformers',132,'One CT per phase in the primary current path for protection and metering.');
-label('CT',[-48,7.2,-9]);
+reg(ct,'132 kV Current Transformers',132,'Exactly one CT per phase in series with the primary conductor.');
+label('CT',[T132.ct,7.2,-9]);
 
-// 132_KV_CVT — exactly three shunt voltage-measurement branches, offset from main path.
+// 132_KV_CVT — shunt measurement branches, physically offset from the main path.
 const cvt=new THREE.Group();scene.add(cvt);
 PH132.forEach(z=>{
- pad(-39,z,1.45,1.45);
- box([1.15,.75,1.15],[-39,.70,z],steel);
- ins(-39,1.05,z,3.70,brown);
- box([.40,.12,.28],[-39,5.0,z],al);
- tube([[-43.0,4.80,z],[-39,5.0,z]],.030);
+ pad(-42,z,1.45,1.45);
+ box([1.15,.70,1.15],[-42,.68,z],steel);
+ ins(-42,1.0,z,3.65,brown);
+ box([.42,.12,.28],[-42,4.95,z],al);
+ tube([[-44.2,4.85,z],[-42,4.95,z]],.030);
 });
-reg(cvt,'132 kV CVT / VT',132,'Shunt-connected voltage measurement for metering, protection and synchronizing. Main load current does not pass through the CVT.');
-label('CVT',[-39,7.4,-9]);
+reg(cvt,'132 kV CVT / VT',132,'Shunt-connected voltage measurement branch. Main load current does not pass through it.');
+label('CVT',[-42,7.3,-9]);
 
-// 132_KV_CB — three independent poles with source/load terminals and moving bridge.
+// 132_KV_CB — three poles with clearly separated source/load bushings.
+// The moving contact object is the only visual/electrical bridge.
 const breaker=new THREE.Group();scene.add(breaker);
 const cb132Contacts=[];
 PH132.forEach(z=>{
- pad(-28,z,2.7,2.0);
- box([1.7,1.05,1.35],[-28,.85,z],steel);
- ins(-28.65,1.15,z,3.25,porc);ins(-27.35,1.15,z,3.25,porc);
- box([.34,.14,.30],[-28.65,4.75,z],al);box([.34,.14,.30],[-27.35,4.75,z],al);
- const contact=new THREE.Group();contact.position.set(-28.65,4.75,z);scene.add(contact);
- box([1.30,.14,.25],[.65,0,0],al,contact);
- contact.userData.baseY=contact.position.y;cb132Contacts.push(contact);
+ pad(-33.5,z,3.6,2.0);
+ box([2.8,.80,1.35],[-33.5,.62,z],steel);
+ ins(T132.cbSrc,1.0,z,3.55,porc);
+ ins(T132.cbDst,1.0,z,3.55,porc);
+ box([.38,.14,.30],[T132.cbSrc,4.85,z],al);
+ box([.38,.14,.30],[T132.cbDst,4.85,z],al);
+ const contact=new THREE.Group();contact.position.set(T132.cbSrc,4.85,z);scene.add(contact);
+ box([2.60,.14,.24],[1.30,0,0],al,contact);
+ cb132Contacts.push(contact);
 });
-box([2.4,1.8,1.8],[-28,.9,9],steel);
-reg(breaker,'132 kV Circuit Breaker',132,'Three-pole circuit breaker. Opening or protection trip creates a real visible break between source and bus sides.');
-label('132 kV CB',[-28,7.4,-9]);
+box([2.2,1.8,1.8],[-33.5,.9,9],steel);
+reg(breaker,'132 kV Circuit Breaker',132,'Three-pole circuit breaker with distinct line and bus terminals. Opening/tripping removes the contact bridge.');
+label('132 kV CB',[-33.5,7.4,-9]);
 
-// 132_KV_BUS_ISO — six support insulators, three blades, no portal.
-const busDisc=make132Disconnector(-17,'132 kV Bus Disconnector');
-label('BUS ISO',[-17,7.2,-9]);
+// 132_KV_BUS_ISO — directly between CB and elevated bus, no loose rings or floating hardware.
+const busDisc=make132Disconnector(-22,'132 kV Bus Disconnector');
+label('BUS ISO',[-22,7.2,-9]);
 
-// Primary fixed conductors — terminal-to-terminal only.
+// Authoritative fixed primary conductor segments.
+// No fixed conductor crosses an isolator or breaker gap.
 PH132.forEach(z=>{
- // Incoming junction -> line ISO source terminal.
- tube([[-73,7.0,z],[-60.5,4.85,z]],.075);
- // Line ISO load terminal -> CT -> CB source terminal.
- tube([[-57.5,4.85,z],[-48,4.82,z],[-28.65,4.75,z]],.075);
- // CB load terminal -> bus ISO source terminal.
- tube([[-27.35,4.75,z],[-18.5,4.85,z]],.075);
- // Bus ISO load terminal -> bus take-off.
- tube([[-15.5,4.85,z],[-12.0,7.4,z],[-9.0,10.4,z],[-7.0,11.70,z]],.075);
+ tube([[-73,7.0,z],[T132.lineIsoSrc,4.85,z]],.075);
+ tube([[T132.lineIsoDst,4.85,z],[T132.ct,4.85,z],[T132.cbSrc,4.85,z]],.075);
+ tube([[T132.cbDst,4.85,z],[T132.busIsoSrc,4.85,z]],.075);
+ tube([[T132.busIsoDst,4.85,z],[T132.busRise,7.2,z],[-10,10.5,z],[-7,11.70,z]],.075);
 });
 
 // 132_KV_BUS — elevated on the new steel support frames.
@@ -218,49 +226,7 @@ for(let x=83;x<=143;x+=3.5)box([3.1,.08,1.75],[x,.27,12],M(0x8b9291,.8,.25));
 // Yard equipment IDs
 
 
-// V10 Phase 2 — 132 kV incoming bay realism
-// Heavy galvanized incoming portal with crossarm bracing and phase attachment strings
-const inPortal=new THREE.Group();scene.add(inPortal);
-for(const z of [-9,9]){
-  box([.55,13,.55],[-48,6.5,z],gal,inPortal);
-  for(let y=1.5;y<12;y+=2.4){
-    const b1=beamBetween(new THREE.Vector3(-48,y,z),new THREE.Vector3(-48,y+2.1,z+(z<0?2.2:-2.2)),.09,gal,inPortal);
-    const b2=beamBetween(new THREE.Vector3(-48,y,z),new THREE.Vector3(-48,y+2.1,z+(z<0?-2.2:2.2)),.09,gal,inPortal);
-  }
-}
-box([1,1,20],[-48,13,0],gal,inPortal);
-for(const z of [-6,0,6]){
-  box([2.2,.22,.35],[-48,12.7,z],gal,inPortal);
-  // suspension/tension insulator string and terminal clamp
-  for(let y=11.2;y<=12.3;y+=.28)cyl(.28,.12,[-48,y,z],porc,inPortal,14);
-  box([.65,.16,.34],[-47.7,10.95,z],al,inPortal);
-}
-// Surge arrester pedestals, grading rings and earth tails
-for(const z of [-6,0,6]){
-  box([1.4,.55,1.4],[-40,.28,z],conc);
-  ins(-40,.55,z,4.4,brown,scene);
-  torus(.48,.045,[-40,5.05,z],al,scene,Math.PI/2);
-  tube([[-40,.7,z],[-40,.15,z],[-39.2,.05,z]],.055,copper);
-}
-// Dedicated CT/CVT support stools and secondary terminal boxes
-for(const z of [-6,0,6]){
-  box([1.5,.45,1.5],[-28,.23,z],conc);box([.8,1,.65],[-28,1.0,z+.75],steel);
-  box([1.5,.45,1.5],[-22,.23,z],conc);box([.8,1,.65],[-22,1.0,z+.75],steel);
-}
-// CB mechanism cabinet, operating linkage and phase terminal corona rings
-box([2.4,2.4,1.8],[-15,1.35,8],steel);
-for(const z of [-6,0,6]){
-  torus(.42,.045,[-16.0,6.0,z],al,scene,Math.PI/2);
-  torus(.42,.045,[-14.0,6.0,z],al,scene,Math.PI/2);
-  tube([[-15,2.2,8],[-15,3.0,z]],.045,steel);
-}
-// Flexible incoming jumpers: gantry → arrester/disconnector/measurement/CB chain visual continuity
-for(const z of [-6,0,6]){
-  tube([[-48,10.95,z],[-45,10.2,z],[-42,7.2,z],[-40,5.25,z]],.075);
-  tube([[-40,5.25,z],[-37,6.2,z],[-34,6.2,z]],.075);
-}
-// Equipment identification boards
-label('132 kV INCOMING GANTRY',[-48,16,-11]);
+// Legacy 132 kV Phase 2 geometry deleted. The authoritative 132_KV_SWITCHYARD above is the only 132 kV bay implementation.
 
 // V10 Phase 1 — engineering-model realism pass: transformer bay + primary connections
 // Transformer rail tracks, wheel stops and heavier plinth detailing
@@ -408,10 +374,10 @@ function particle(c){
 }
 const phaseZ132=[-6,0,6], phaseZ33=[-3.2,0,3.2];
 const phaseColorsFlow=[0xff3b30,0xffd21f,0x2677ff]; // R Y B
-const p132Line=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-122,20.4,z],[-90,20.1,z],[-84.9,20,z],[-79.2,12,z],[-73,7,z],[-60.5,4.85,z]].map(v=>new THREE.Vector3(...v))));
-const p132AfterLineIso=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-57.5,4.85,z],[-48,4.82,z],[-28.65,4.75,z]].map(v=>new THREE.Vector3(...v))));
-const p132AfterCB=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-27.35,4.75,z],[-18.5,4.85,z]].map(v=>new THREE.Vector3(...v))));
-const p132Bus=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-15.5,4.85,z],[-12,7.4,z],[-9,10.4,z],[-7,11.7,z],[17,11.7,z],[39,11.7,z],[42,12.0,z],[45.5,14.2,z],[48.8,17,z]].map(v=>new THREE.Vector3(...v))));
+const p132Line=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-122,20.4,z],[-90,20.1,z],[-84.9,20,z],[-79.2,12,z],[-73,7,z],[T132.lineIsoSrc,4.85,z]].map(v=>new THREE.Vector3(...v))));
+const p132AfterLineIso=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[T132.lineIsoDst,4.85,z],[T132.ct,4.85,z],[T132.cbSrc,4.85,z]].map(v=>new THREE.Vector3(...v))));
+const p132AfterCB=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[T132.cbDst,4.85,z],[T132.busIsoSrc,4.85,z]].map(v=>new THREE.Vector3(...v))));
+const p132Bus=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[T132.busIsoDst,4.85,z],[T132.busRise,7.2,z],[-10,10.5,z],[-7,11.7,z],[17,11.7,z],[39,11.7,z],[42,12,z],[45.5,14.2,z],[48.8,17,z]].map(v=>new THREE.Vector3(...v))));
 const flow132Line=[[],[],[]],flow132AfterLineIso=[[],[],[]],flow132AfterCB=[[],[],[]],flow132Bus=[[],[],[]];
 const p33Up=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[63.2,14,z],[68.5,8,z],[73.5,4.25,z],[77.62,3.75,z]].map(v=>new THREE.Vector3(...v))));
 const p33=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[78.38,3.75,z],[88,4,z],[94,4.4,z],[96,7.9,z],[108,7.9,z],[120,7.9,z],[123,7.2,z]].map(v=>new THREE.Vector3(...v))));

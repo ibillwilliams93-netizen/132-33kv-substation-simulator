@@ -57,7 +57,7 @@ const la=new THREE.Group();scene.add(la);[-6,0,6].forEach(z=>{pad(-65,z,1.8,1.8)
 // disconnectors with real blades
 function disconnector(x,name){const g=new THREE.Group();scene.add(g);[-6,0,6].forEach(z=>{pad(x,z,4.4,2.4);ins(x-1.45,.4,z,4.7,brown);ins(x+1.45,.4,z,4.7,brown);const pivot=new THREE.Group();pivot.position.set(x-1.45,5.3,z);scene.add(pivot);const blade=box([3,.13,.18],[1.5,0,0],al,pivot);cyl(.18,.28,[2.92,0,0],copper,pivot);g.add(pivot);
  box([3.8,.16,.16],[x,.62,z],gal);cyl(.12,4.5,[x,.62,z+.75],gal);beamBetween([x,.75,z+.75],[x-1.35,5.15,z],.06,gal);g.userData.blades=(g.userData.blades||[]);g.userData.blades.push(pivot)});reg(g,name,132,'Provides a visible isolation gap. It is not intended to interrupt fault current or normal load current.');return g}
-const lineDisc=disconnector(-53,'132 kV Line Disconnector');label('LINE DISCONNECTOR',[-53,8.8,-10]);
+const lineDisc=disconnector(-53,'132 kV Line Disconnector');[-6,0,6].forEach(z=>{box([.38,.18,.34],[-54.45,5.3,z],al);box([.38,.18,.34],[-51.55,5.3,z],al)});label('LINE DISCONNECTOR',[-53,8.8,-10]);
 // CT
 const ct=new THREE.Group();scene.add(ct);[-6,0,6].forEach(z=>{pad(-40,z);box([1.25,.7,1.25],[-40,.75,z],steel);ins(-40,1.05,z,3.7,brown);cyl(.82,1.05,[-40,4.25,z],brown);torus(.78,.16,[-40,4.8,z],brown,scene,Math.PI/2);box([1.35,.16,.28],[-40,5.35,z],al)});reg(ct,'132 kV Current Transformers',132,'Measures primary current for metering and protection. Secondary circuits are separate from the primary power conductor.');label('CURRENT TRANSFORMERS',[-40,8.8,-10]);
 // CVT shunt measurement
@@ -65,16 +65,18 @@ const cvt=new THREE.Group();scene.add(cvt);[-6,0,6].forEach(z=>{pad(-29,z);box([
 // breaker
 const breaker=new THREE.Group();scene.add(breaker);const cb132Contacts=[];[-6,0,6].forEach(z=>{pad(-15,z,2.8,2.6);box([1.8,1.25,1.5],[-15,1,z],steel);ins(-15.42,1.55,z,3.35,porc);ins(-14.58,1.55,z,3.35,porc);cyl(.52,1.55,[-15,5.15,z],steel);const c132=new THREE.Group();c132.position.set(-15.42,5.95,z);scene.add(c132);box([.84,.18,.35],[.42,0,0],al,c132);cb132Contacts.push(c132)});box([3.2,2.4,2.2],[-15,1.2,10],steel);// CB receiving terminal pads: fixed conductors stop here; moving blade bridges the air gap only when closed.
 [-6,0,6].forEach(z=>box([.34,.22,.42],[-14.58,5.95,z],al));reg(breaker,'132 kV Circuit Breaker',132,'Interrupts load and fault current when commanded by protection or control systems.');label('132 kV CIRCUIT BREAKER',[-15,9.3,-10]);
-const busDisc=disconnector(-2,'132 kV Bus Disconnector');label('BUS DISCONNECTOR',[-2,8.8,-10]);
+const busDisc=disconnector(-2,'132 kV Bus Disconnector');[-6,0,6].forEach(z=>{box([.38,.18,.34],[-3.45,5.3,z],al);box([.38,.18,.34],[-.55,5.3,z],al)});label('BUS DISCONNECTOR',[-2,8.8,-10]);
 // primary conductor continuity; CVT taps are separate
 [-6,0,6].forEach(z=>{
- tube([[-69,9.5,z],[-56.1,5.75,z]],.085);
- // Primary conductor terminates on the LINE-side CB bushing.
- tube([[-49.9,5.75,z],[-40,5.55,z],[-15.42,5.95,z]],.085);
- // Separate BUS-side conductor begins at the opposite CB bushing.
- tube([[-14.58,5.95,z],[-5.1,5.75,z]],.085);
- tube([[1.1,5.75,z],[8,7.2,z]],.085);
- // CVT is a shunt voltage tap, not a series power conductor.
+ // Incoming line terminates at line-disconnector source terminal.
+ tube([[-69,9.5,z],[-54.45,5.3,z]],.085);
+ // Line-disconnector load terminal -> CT -> 132 kV CB line terminal.
+ tube([[-51.55,5.3,z],[-40,5.55,z],[-15.42,5.95,z]],.085);
+ // 132 kV CB bus terminal -> bus-disconnector source terminal.
+ tube([[-14.58,5.95,z],[-3.45,5.3,z]],.085);
+ // Bus-disconnector load terminal -> rigid 132 kV bus.
+ tube([[-.55,5.3,z],[8,7.2,z]],.085);
+ // CVT is a shunt voltage tap from the primary conductor.
  tube([[-40,5.55,z],[-29,6.7,z]],.045)
 });
 // V8 bus support steel portals
@@ -320,7 +322,11 @@ function particle(c){
 }
 const phaseZ132=[-6,0,6], phaseZ33=[-3.2,0,3.2];
 const phaseColorsFlow=[0xff3b30,0xffd21f,0x2677ff]; // R Y B
-const p132=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-122,21,z],[-78,21.7,z],[-69,9.5,z],[-53,5.8,z],[-40,5.55,z],[-15,6.2,z],[-2,5.75,z],[22,7.2,z],[39,7.2,z],[48.8,17,z]].map(v=>new THREE.Vector3(...v))));
+const p132Line=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-122,21,z],[-78,21.7,z],[-69,9.5,z],[-54.45,5.3,z]].map(v=>new THREE.Vector3(...v))));
+const p132AfterLineIso=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-51.55,5.3,z],[-40,5.55,z],[-15.42,5.95,z]].map(v=>new THREE.Vector3(...v))));
+const p132AfterCB=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-14.58,5.95,z],[-3.45,5.3,z]].map(v=>new THREE.Vector3(...v))));
+const p132Bus=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-.55,5.3,z],[8,7.2,z],[22,7.2,z],[39,7.2,z],[48.8,17,z]].map(v=>new THREE.Vector3(...v))));
+const flow132Line=[[],[],[]],flow132AfterLineIso=[[],[],[]],flow132AfterCB=[[],[],[]],flow132Bus=[[],[],[]];
 // 33 kV main path stops at the bus; each outgoing feeder branches cleanly from the bus.
 const p33Up=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[63.2,14,z],[68.5,8,z],[73.5,4.25,z],[77.62,3.75,z]].map(v=>new THREE.Vector3(...v))));
 const p33=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[78.38,3.75,z],[88,4,z],[94,4.4,z],[96,7.9,z],[108,7.9,z],[120,7.9,z],[123,7.2,z]].map(v=>new THREE.Vector3(...v))));
@@ -328,12 +334,12 @@ const flow33Up=[[],[],[]];
 const feederZ=[-28,0,28];
 const pFeeders=feederZ.map(fz=>phaseZ33.map((z,ph)=>new THREE.CatmullRomCurve3([[123,7.2,z],[126,3.8,fz+[-3,0,3][ph]],[132,3.55,fz+[-3,0,3][ph]],[136,3.35,fz+[-3,0,3][ph]],[139.6,7.0,fz+[-3,0,3][ph]],[141,9.55,fz+[-3,0,3][ph]],[150,9.55,fz+[-3,0,3][ph]],[162,10.2,fz+[-3,0,3][ph]]].map(v=>new THREE.Vector3(...v)))));
 for(let ph=0;ph<3;ph++){
- for(let i=0;i<22;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/22;flow132[ph].push(o)}
+ for(const arr of [flow132Line[ph],flow132AfterLineIso[ph],flow132AfterCB[ph],flow132Bus[ph]])for(let i=0;i<7;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/7;arr.push(o)}
  for(let i=0;i<8;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/8;flow33Up[ph].push(o)}
  for(let i=0;i<12;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/12;flow33[ph].push(o)}
  for(let fd=0;fd<3;fd++)for(let i=0;i<16;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=(i/16+fd*.055)%1;flowFeeders[fd][ph].push(o)}
 }
-const e132=()=>state.power&&state.lineIso&&state.cb132&&state.busIso&&!state.fault;const e33=()=>e132()&&state.cb33;const eFeeder=i=>e33()&&state.feeders[i]&&state.feederIso[i]&&!state.feederFault[i];
+const live132Line=()=>state.power&&!state.fault;const live132AfterLineIso=()=>live132Line()&&state.lineIso;const live132AfterCB=()=>live132AfterLineIso()&&state.cb132;const e132=()=>live132AfterCB()&&state.busIso;const e33=()=>e132()&&state.cb33;const eFeeder=i=>e33()&&state.feeders[i]&&state.feederIso[i]&&!state.feederFault[i];
 function blades(g,closed){(g.userData.blades||[]).forEach(b=>b.rotation.z=closed?0:-.7)}
 function breakerVisual(arr,closed){arr.forEach(o=>{o.rotation.z=closed?0:-1.05;o.rotation.y=0;o.position.y=o.userData.baseY??o.position.y;if(o.userData.baseY===undefined)o.userData.baseY=o.position.y})}
 function setSldState(id,closed){const e=document.getElementById(id);if(!e)return;e.textContent=closed?'●':'○';e.classList.toggle('sldClosed',closed);e.classList.toggle('sldOpen',!closed)}
@@ -443,5 +449,8 @@ document.getElementById('labels').onclick=()=>{labelMode=(labelMode+1)%3;const b
 document.getElementById('controls').onclick=()=>{const p=document.getElementById('left');p.classList.toggle('control-hidden');document.getElementById('controls').textContent=p.classList.contains('control-hidden')?'Show Controls':'Hide Controls'};
 ui();let clock=0;renderer.setAnimationLoop(()=>{clock+=.0024;
  if(cameraFlight){const raw=Math.min(1,(performance.now()-cameraFlight.start)/cameraFlight.duration),k=easeInOutCubic(raw);camera.position.lerpVectors(cameraFlight.fromPos,cameraFlight.toPos,k);controls.target.lerpVectors(cameraFlight.fromTarget,cameraFlight.toTarget,k);if(raw>=1){document.getElementById('eqInfo').textContent='Equipment focused. Click the equipment itself for detailed training information.';cameraFlight=null}}
- controls.update();labels.forEach(s=>{if(labelMode!==0&&!cutObjects.includes(s))s.visible=true});if(state.cut){fluxLoops.forEach((o,i)=>{o.material.opacity=.28+.24*(.5+.5*Math.sin(clock*16+i*1.7));const s=1+.08*Math.sin(clock*16+i*1.7);o.scale.setScalar(s)})}flow132.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e132();o.position.copy(p132[ph].getPoint((o.userData.t+clock)%1))}));flow33Up.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e132();o.position.copy(p33Up[ph].getPoint((o.userData.t+clock*1.12)%1))}));flow33.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e33();o.position.copy(p33[ph].getPoint((o.userData.t+clock*1.12)%1))}));flowFeeders.forEach((fd,fi)=>fd.forEach((arr,ph)=>arr.forEach(o=>{o.visible=eFeeder(fi);o.position.copy(pFeeders[fi][ph].getPoint((o.userData.t+clock*1.18)%1))})));renderer.render(scene,camera)});
+ controls.update();labels.forEach(s=>{if(labelMode!==0&&!cutObjects.includes(s))s.visible=true});if(state.cut){fluxLoops.forEach((o,i)=>{o.material.opacity=.28+.24*(.5+.5*Math.sin(clock*16+i*1.7));const s=1+.08*Math.sin(clock*16+i*1.7);o.scale.setScalar(s)})}flow132Line.forEach((arr,ph)=>arr.forEach(o=>{o.visible=live132Line();o.position.copy(p132Line[ph].getPoint((o.userData.t+clock)%1))}));
+ flow132AfterLineIso.forEach((arr,ph)=>arr.forEach(o=>{o.visible=live132AfterLineIso();o.position.copy(p132AfterLineIso[ph].getPoint((o.userData.t+clock)%1))}));
+ flow132AfterCB.forEach((arr,ph)=>arr.forEach(o=>{o.visible=live132AfterCB();o.position.copy(p132AfterCB[ph].getPoint((o.userData.t+clock)%1))}));
+ flow132Bus.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e132();o.position.copy(p132Bus[ph].getPoint((o.userData.t+clock)%1))}));flow33Up.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e132();o.position.copy(p33Up[ph].getPoint((o.userData.t+clock*1.12)%1))}));flow33.forEach((arr,ph)=>arr.forEach(o=>{o.visible=e33();o.position.copy(p33[ph].getPoint((o.userData.t+clock*1.12)%1))}));flowFeeders.forEach((fd,fi)=>fd.forEach((arr,ph)=>arr.forEach(o=>{o.visible=eFeeder(fi);o.position.copy(pFeeders[fi][ph].getPoint((o.userData.t+clock*1.18)%1))})));renderer.render(scene,camera)});
 }catch(err){const e=document.getElementById('err');e.style.display='block';e.textContent='3D simulator failed to initialize: '+err.message;console.error(err)}

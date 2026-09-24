@@ -186,7 +186,7 @@ const phaseColors=[0xd94b42,0xe7c447,0x4f7fd7];
 // V7 cable trench covers
 for(let x=-70;x<125;x+=3)box([2.75,.12,2.2],[x,.07,27],M(0x6e7371,.05,.82));
 // training state
-const state={power:false,lineIso:true,cb132:true,busIso:true,cb33:true,feeders:[true,true,true],feederIso:[true,true,true],feederFault:[false,false,false],fault:false,cut:false,earth:false,training:false,trainingStep:0,trainingErrors:0,protPulse:0};
+const state={power:false,lineIso:true,cb132:true,busIso:true,cb33:true,feeders:[true,true,true],feederIso:[true,true,true],feederFault:[false,false,false],fault:false,cut:false,earth:false,training:false,trainingStep:0,trainingErrors:0,protPulse:0,faultZone:''};
 const flow132=[[],[],[]],flow33=[[],[],[]],flowFeeders=Array.from({length:3},()=>[[],[],[]]);
 function particle(c){
  const g=new THREE.Group();
@@ -240,6 +240,25 @@ function runProtection(i){
 }
 document.getElementById('power').onclick=()=>{state.power=!state.power;ui()};
 document.getElementById('fault').onclick=()=>{state.fault=!state.fault;if(state.fault)state.cb132=false;else state.cb132=true;ui()};
+function applyZoneFault(zone){
+ state.faultZone=zone;state.fault=false;
+ let title='PROTECTION EVENT',msg='';
+ if(zone==='line132'){state.fault=true;state.cb132=false;msg='132 kV incoming-line fault: line protection operated and the 132 kV circuit breaker tripped. Transformer and 33 kV bus lost supply.';runProtectionZone('132 kV LINE');}
+ else if(zone==='transformer'){state.cb132=false;state.cb33=false;msg='Transformer internal/differential fault: transformer protection issued trips to both the 132 kV and 33 kV breakers, isolating the transformer from both sides.';runProtectionZone('TRANSFORMER DIFFERENTIAL');}
+ else if(zone==='bus33'){state.cb33=false;state.feeders=[false,false,false];msg='33 kV busbar fault: bus protection isolated the transformer incomer and all three outgoing feeder breakers in this training model.';runProtectionZone('33 kV BUS');}
+ else if(/^f[123]$/.test(zone)){const i=Number(zone[1])-1;state.feederFault[i]=true;state.feeders[i]=false;msg='33 kV Feeder '+(i+1)+' fault: feeder protection tripped only the affected feeder breaker. Healthy feeders remain available from the 33 kV bus.';runProtection(i);}
+ document.getElementById('eqName').textContent=title;document.getElementById('eqInfo').textContent=msg;ui();
+}
+function runProtectionZone(name){
+ const ids=['pCT','pRelay','pDC','pTrip'];state.protPulse++;const token=state.protPulse;
+ ids.forEach(x=>document.getElementById(x).classList.remove('live'));
+ document.getElementById('protMsg').textContent=name+' fault detected';
+ ids.forEach((id,k)=>setTimeout(()=>{if(token!==state.protPulse)return;document.getElementById(id).classList.add('live');document.getElementById('protMsg').textContent=[name+' CT/protection inputs detect abnormal condition','Protection relay operates','Station DC supplies trip energy','Required circuit breaker trip coil(s) operate'][k]},k*420));
+ setTimeout(()=>{if(token!==state.protPulse)return;ids.forEach(x=>document.getElementById(x).classList.remove('live'));document.getElementById('protMsg').textContent=name+' isolated by protection'},2200);
+}
+document.getElementById('applyFault').onclick=()=>{const z=document.getElementById('faultZone').value;if(z)applyZoneFault(z)};
+document.getElementById('resetFaults').onclick=()=>{state.fault=false;state.faultZone='';state.feederFault=[false,false,false];state.cb132=true;state.cb33=true;state.feeders=[true,true,true];document.getElementById('faultZone').value='';document.getElementById('eqName').textContent='PROTECTION RESET';document.getElementById('eqInfo').textContent='Fault flags cleared and breakers restored for simulator training. In field operation, protection reset and re-energization require the applicable investigation, authorization and switching procedure.';ui()};
+
 document.getElementById('cut').onclick=()=>{state.cut=!state.cut;tank.material.transparent=true;tank.material.opacity=state.cut?.14:1;internals.visible=state.cut;[hvTag,fluxTag,lvTag].forEach(s=>s.visible=state.cut);document.getElementById('eqName').textContent=state.cut?'TRANSFORMER CUTAWAY — ENERGY TRANSFER':'132/33 kV POWER TRANSFORMER';document.getElementById('eqInfo').innerHTML=state.cut?'<b>132 kV AC → magnetic flux → induced 33 kV AC</b><br>The HV and LV windings are electrically isolated. Alternating current in the HV winding establishes alternating magnetic flux in the laminated core. That changing flux links the LV winding and induces voltage by electromagnetic induction. The animation intentionally does not show electricity jumping between windings.':'Transformer cutaway closed.';ui()};
 document.getElementById('earth').onclick=()=>{state.earth=!state.earth;earthObjects.forEach(o=>{o.position.y=state.earth?.12:-.08;o.material=state.earth?M(0x2dcc66,.15,.35):copper});ui()};
 function view(p,t){camera.position.set(...p);controls.target.set(...t);controls.update()}

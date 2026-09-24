@@ -16,6 +16,10 @@ h3{margin:2px 0 8px;font-size:13px}.status{display:grid;grid-template-columns:1f
 </head><body><div id="app"></div>
 <div id="topbar" class="panel"><div><div class="title">132/33 kV SUBSTATION DIGITAL TWIN — V9</div><div class="sub">Engineering & Training Upgrade • Independent feeder control • Interactive SLD</div></div><div id="mode" class="green">EXPLORE • SYSTEM NORMAL</div></div>
 <div id="left" class="panel"><h3>OPERATING MODES</h3><div><button id="power">Power Flow</button><button id="fault">Protection</button><button id="cut">Transformer</button><button id="earth">Earthing</button></div>
+<h3 style="margin-top:12px">FAULT SIMULATION V2</h3>
+<select id="faultZone" style="width:100%;background:#132a38;color:#eaf2f7;border:1px solid #35566a;border-radius:6px;padding:6px">
+<option value="">Select fault location…</option><option value="line132">132 kV Incoming Line</option><option value="transformer">Transformer Internal / Differential</option><option value="bus33">33 kV Busbar</option><option value="f1">33 kV Feeder 1</option><option value="f2">33 kV Feeder 2</option><option value="f3">33 kV Feeder 3</option></select>
+<div style="margin-top:5px"><button id="applyFault">Apply Fault</button><button id="resetFaults">Reset Faults</button></div>
 <h3 style="margin-top:12px">SWITCHING</h3><div><button id="lineIso">Line ISO CLOSED</button><button id="cb132">132 CB CLOSED</button><button id="busIso">Bus ISO CLOSED</button><button id="cb33">33 CB CLOSED</button></div>
 <h3 style="margin-top:12px">33 kV FEEDERS</h3>
 <div><button id="f1">F1 CB CLOSED</button><button id="f2">F2 CB CLOSED</button><button id="f3">F3 CB CLOSED</button></div>

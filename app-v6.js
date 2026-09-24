@@ -16,12 +16,22 @@ function tube(points,r=.07,m=al,parent=scene){const c=new THREE.CatmullRomCurve3
 function pad(x,z,w=2.3,d=2.3){return box([w,.38,d],[x,.19,z],conc)}
 function ins(x,y,z,h=4.5,material=brown,parent=scene){const g=new THREE.Group();g.position.set(x,y,z);parent.add(g);cyl(.11,h,[0,h/2,0],steel,g);for(let a=.3;a<h;a+=.34)cyl(.36,.085,[0,a,0],material,g,18);cyl(.18,.18,[0,h+.05,0],gal,g);return g}
 function lattice(x,z,h=18){const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);for(const dx of [-.45,.45])for(const dz of [-.45,.45])box([.12,h,.12],[dx,h/2,dz],gal,g);for(let y=1;y<h;y+=1.8){for(const zz of [-.45,.45]){const b=box([1.15,.09,.09],[0,y,zz],gal,g);b.rotation.z=(y%3.6<1)?.55:-.55}}return g}
-function label(t,p){const c=document.createElement('canvas');c.width=512;c.height=84;const q=c.getContext('2d');q.fillStyle='#06131ddd';q.roundRect(2,2,508,80,13);q.fill();q.fillStyle='#fff';q.font='bold 25px Arial';q.textAlign='center';q.fillText(t,256,52);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),depthTest:false}));s.position.set(...p);s.scale.set(10,1.65,1);scene.add(s);labels.push(s);return s}
+function label(t,p){const c=document.createElement('canvas');c.width=512;c.height=84;const q=c.getContext('2d');q.fillStyle='#06131ddd';q.roundRect(2,2,508,80,13);q.fill();q.fillStyle='#fff';q.font='bold 25px Arial';q.textAlign='center';q.fillText(t,256,52);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),depthTest:false}));s.position.set(...p);s.scale.set(7.2,1.2,1);s.material.opacity=.72;scene.add(s);labels.push(s);return s}
 // Civil works
-const ground=new THREE.Mesh(new THREE.PlaneGeometry(270,130),gravel);ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+// V7 crushed-rock yard: vertex-level tone variation avoids the flat CAD look
+const gg=new THREE.PlaneGeometry(270,130,80,40);
+const gc=[];for(let i=0;i<gg.attributes.position.count;i++){const n=.43+Math.random()*.09;gc.push(n,n*.99,n*.94)}
+gg.setAttribute('color',new THREE.Float32BufferAttribute(gc,3));
+const gmat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,metalness:0});
+const ground=new THREE.Mesh(gg,gmat);ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
 box([250,.08,8],[25,.04,48],M(0x555b59,0,.96));box([250,.12,.5],[25,.06,53],conc);box([250,.12,.5],[25,.06,-55],conc);
 for(const x of [-96,146])box([.22,2.3,110],[x,1.15,0],gal);
 for(let z=-54;z<=54;z+=6){box([.16,2.3,.16],[-96,1.15,z],gal);box([.16,2.3,.16],[146,1.15,z],gal)}
+// V7 perimeter security fence mesh, warning boards and yard lighting
+const fenceMat=new THREE.MeshStandardMaterial({color:0x7e8789,metalness:.72,roughness:.5,wireframe:true});
+for(const z of [-54,54]){const mesh=new THREE.Mesh(new THREE.PlaneGeometry(240,2.4,80,2),fenceMat);mesh.position.set(25,1.2,z);scene.add(mesh)}
+for(const x of [-94,144]){const mesh=new THREE.Mesh(new THREE.PlaneGeometry(108,2.4,36,2),fenceMat);mesh.rotation.y=Math.PI/2;mesh.position.set(x,1.2,0);scene.add(mesh)}
+for(const x of [-70,-25,20,65,110,135]){box([.18,8,.18],[x,4,50],gal);box([2.2,.12,.12],[x,8,50],gal);const lamp=box([1.1,.22,.5],[x+1,7.9,50],M(0xe5e1c7,.1,.3));lamp.rotation.z=-.18}
 // buried earthing
 for(let x=-85;x<135;x+=10){const e=box([.04,.035,98],[x,-.08,-2],copper);earthObjects.push(e)}
 for(let z=-48;z<48;z+=10){const e=box([220,.035,.04],[25,-.08,z],copper);earthObjects.push(e)}
@@ -48,11 +58,27 @@ const busDisc=disconnector(-2,'132 kV Bus Disconnector');label('BUS DISCONNECTOR
 // transformer local group centered correctly
 box([32,.55,28],[56,.275,0],conc);for(const [s,p] of [[[34,.7,1],[56,.35,-15]],[[34,.7,1],[56,.35,15]],[[1,.7,30],[39,.35,0]],[[1,.7,30],[73,.35,0]]])box(s,p,conc);
 const tx=new THREE.Group();tx.position.set(56,.55,0);scene.add(tx);const tank=box([17,9,12],[0,5,0],txmat,tx);cutObjects.push(tank);box([18,.45,13],[0,9.9,0],txmat,tx);
+// V7 transformer detail: radiator banks, headers, fans, pipework and accessory silhouettes
+for(const side of [-1,1]){
+  cyl(.22,7,[side*9.1,7.6,0],txmat,tx);
+  cyl(.22,7,[side*9.1,2.2,0],txmat,tx);
+}
 // radiator banks
 for(const side of [-1,1])for(let z=-4.8;z<=4.8;z+=1.2){box([2.8,6.6,.12],[side*9.7,4.9,z],gal,tx)}
+// cooling fans on both radiator banks
+for(const side of [-1,1])for(const z of [-3,0,3]){
+ const fan=new THREE.Group();fan.position.set(side*11.15,4.7,z);fan.rotation.z=Math.PI/2;tx.add(fan);
+ const ring=new THREE.Mesh(new THREE.TorusGeometry(.72,.08,8,24),black);fan.add(ring);
+ for(let a=0;a<4;a++){const blade=box([.62,.08,.18],[.34,0,0],black,fan);blade.rotation.z=a*Math.PI/2}
+}
 // conservator horizontal along z
 const cons=cyl(1.45,9,[0,14.1,0],txmat,tx,28);cons.rotation.x=Math.PI/2;box([.22,4,.22],[0,11.8,0],gal,tx);
 box([3.2,3,2.4],[9.8,2.1,7.4],txmat,tx); // marshalling kiosk
+// Buchholz relay / conservator pipe / breather / pressure relief
+const buch=cyl(.32,.8,[2.2,11.25,0],M(0xb9a36d,.45,.4),tx);buch.rotation.z=Math.PI/2;
+const cp=tube([[0,10.1,0],[1.8,11.25,0],[4.4,12.8,0]],.13,txmat,tx);
+cyl(.18,2.2,[5.2,10.9,4.8],gal,tx);cyl(.42,.75,[5.2,9.7,4.8],M(0xc7b6a0,.05,.3),tx);
+cyl(.42,.45,[-3.5,10.45,3.8],M(0xb5b9b6,.55,.35),tx);
 // bushings: HV taller, LV shorter
 [-5,0,5].forEach(z=>{ins(-7.2,9.9,z,6.5,brown,tx);ins(7.2,9.9,z*.65,3.8,porc,tx)});
 // internal core/windings hidden until cutaway
@@ -69,6 +95,13 @@ const inst33=new THREE.Group();scene.add(inst33);[-3.2,0,3.2].forEach(z=>{pad(88
 [-28,0,28].forEach((fz,i)=>{const g=new THREE.Group();scene.add(g);[-3,0,3].forEach(d=>{pad(131,fz+d,1.8,1.8);box([1,1.2,1],[131,.9,fz+d],steel);ins(131,1.3,fz+d,2.5,porc)});box([.35,11,.35],[141,5.5,fz-5],gal);box([.35,11,.35],[141,5.5,fz+5],gal);box([.4,.4,11],[141,9,fz],gal);[-3,0,3].forEach((d,j)=>tube([[123,4.5,[-3.2,0,3.2][j]],[131,4,fz+d],[141,9,fz+d],[162,10,fz+d]],.065));reg(g,'33 kV Feeder '+(i+1),33,'Outgoing 33 kV feeder bay supplying the downstream sub-transmission/distribution network.');label('33 kV FEEDER '+(i+1),[141,13.5,fz])});
 // control building and trenches
 box([25,7.5,17],[48,3.75,39],M(0xc8c5ba,0,.9));box([26,.5,18],[48,7.7,39],M(0x4c575d,.45,.5));box([175,.22,2],[25,.11,26],black);label('CONTROL & PROTECTION',[48,11.2,39]);
+// V7 realistic terminal hardware: clamps and phase marker discs at major connection points
+const phaseColors=[0xd94b42,0xe7c447,0x4f7fd7];
+[[-69,9.5],[-56.1,5.75],[-49.9,5.75],[-40,5.55],[-15,6.2],[-5.1,5.75],[8,7.2],[39,7.2]].forEach(([x,y])=>{
+ [-6,0,6].forEach((z,i)=>{const c=cyl(.16,.32,[x,y,z],gal);c.rotation.z=Math.PI/2;if(x===-69||x===39)cyl(.2,.08,[x,y+.35,z],M(phaseColors[i],.1,.45))})
+});
+// V7 cable trench covers
+for(let x=-70;x<125;x+=3)box([2.75,.12,2.2],[x,.07,27],M(0x6e7371,.05,.82));
 // training state
 const state={power:false,lineIso:true,cb132:true,busIso:true,cb33:true,fault:false,cut:false,earth:false};
 const flow132=[],flow33=[];function particle(c){const o=new THREE.Mesh(new THREE.SphereGeometry(.13,8,6),new THREE.MeshBasicMaterial({color:c}));scene.add(o);return o}

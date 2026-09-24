@@ -61,6 +61,37 @@ for(let z=-48;z<48;z+=10){const e=box([220,.035,.04],[25,-.08,z],copper);earthOb
 
 const PH132=[-6,0,6];
 
+// 132_KV_TRANSMISSION_TOWER — outside the fenced switchyard, feeding the incoming gantry.
+// Generic double-circuit-capable lattice form, with this simulator using one three-phase 132 kV circuit.
+const tower132=new THREE.Group();scene.add(tower132);
+const TX=-145, TZ=0, TH=29;
+// tapered lattice legs
+for(const z of [-3.6,3.6]){
+ beamBetween([TX-3.0,0,TZ+z],[TX-1.05,TH,TZ+z*.28],.16,gal);
+ beamBetween([TX+3.0,0,TZ+z],[TX+1.05,TH,TZ+z*.28],.16,gal);
+}
+// horizontal lattice ties and X bracing
+for(let y=2;y<25;y+=3){
+ const w=3.0-(y/29)*1.7;
+ box([w*2,.14,.14],[TX,y,TZ-3.0+(y/29)*2.2],gal);
+ box([w*2,.14,.14],[TX,y,TZ+3.0-(y/29)*2.2],gal);
+ beamBetween([TX-w,y,TZ-2.6],[TX+w,y+2.4,TZ-2.2],.07,gal);
+ beamBetween([TX+w,y,TZ+2.6],[TX-w,y+2.4,TZ+2.2],.07,gal);
+}
+// tower top and three phase crossarms facing the switchyard
+box([8.5,.30,.30],[TX,27.2,TZ],gal);
+const towerPhaseZ=[-6,0,6];
+const towerPhaseY=[25.0,27.2,25.0];
+towerPhaseZ.forEach((z,i)=>{
+ box([.28,.28,Math.abs(z)*2+1.2],[TX,towerPhaseY[i]+1.0,0],gal);
+ const str=new THREE.Group();str.position.set(TX,towerPhaseY[i],z);scene.add(str);
+ ins(0,-2.7,0,2.7,brown,str);
+ // 132 kV overhead span from tower suspension/strain point to switchyard gantry termination.
+ sagTube([TX,towerPhaseY[i]-2.7,z],[-84.9,20.0,z],1.8,.085,al);
+});
+reg(tower132,'132 kV Transmission Tower',132,'Outdoor transmission structure supplying the three-phase 132 kV incoming circuit to the switchyard gantry.');
+label('132 kV TRANSMISSION TOWER',[TX,32,-10]);
+
 // 132_KV_INCOMING — one grounded steel termination gantry, three phase terminations.
 const gantry132=new THREE.Group();scene.add(gantry132);
 for(const z of [-9,9])box([.55,17.5,.55],[-82,8.75,z],gal,gantry132);
@@ -69,7 +100,6 @@ PH132.forEach(z=>{
   // horizontal strain string keeps live termination away from grounded crossarm
   const string=new THREE.Group();string.position.set(-82,17.5,z);string.rotation.z=Math.PI/2;scene.add(string);
   ins(0,0,0,3.0,brown,string);
-  sagTube([-126,20.4,z],[-84.9,20.0,z],1.0,.085,al);
   tube([[-84.9,20.0,z],[-79.2,12.0,z],[-73.0,7.0,z]],.078);
 });
 label('132 kV INCOMING',[-88,23.0,-10]);
@@ -378,7 +408,7 @@ function particle(c){
 }
 const phaseZ132=[-6,0,6], phaseZ33=[-3.2,0,3.2];
 const phaseColorsFlow=[0xff3b30,0xffd21f,0x2677ff]; // R Y B
-const p132Line=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-122,20.4,z],[-90,20.1,z],[-84.9,20,z],[-79.2,12,z],[-73,7,z],[T132.lineIsoSrc,4.85,z]].map(v=>new THREE.Vector3(...v))));
+const p132Line=phaseZ132.map((z,i)=>new THREE.CatmullRomCurve3([[TX,towerPhaseY[i]-2.7,z],[-125,20.8,z],[-105,19.6,z],[-84.9,20,z],[-79.2,12,z],[-73,7,z],[T132.lineIsoSrc,4.85,z]].map(v=>new THREE.Vector3(...v))));
 const p132AfterLineIso=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[T132.lineIsoDst,4.85,z],[T132.ct,4.85,z],[T132.cbSrc,4.85,z]].map(v=>new THREE.Vector3(...v))));
 const p132AfterCB=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[T132.cbDst,4.85,z],[T132.busIsoSrc,4.85,z]].map(v=>new THREE.Vector3(...v))));
 const p132Bus=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[T132.busIsoDst,4.85,z],[T132.busRise,7.2,z],[-10,10.5,z],[-7,11.7,z],[17,11.7,z],[39,11.7,z],[42,12,z],[45.5,14.2,z],[48.8,17,z]].map(v=>new THREE.Vector3(...v))));

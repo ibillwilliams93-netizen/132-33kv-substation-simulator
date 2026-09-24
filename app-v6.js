@@ -131,8 +131,12 @@ for(let i=0;i<3;i++){
   // phase post insulators and take-off clamps
   for(const dz of [-3.2,0,3.2]){
     ins(126,7.15,zc+dz,1.35,porc,g);box([.62,.10,.28],[126,8.6,zc+dz],al,g);
-    for(let y=6.55;y<=7.6;y+=.25)cyl(.22,.10,[143,y,zc+dz],porc,g,12);
-    box([.62,.12,.30],[143,6.35,zc+dz],al,g);
+    // Three-phase outgoing dead-end/strain assembly.
+    // The steel gantry is not electrically connected to the phase conductor.
+    const strain=new THREE.Group();strain.position.set(143,7.05,zc+dz);g.add(strain);
+    for(let n=0;n<7;n++){const d=cyl(.25,.11,[0,-n*.24,0],porc,strain,14);d.rotation.z=Math.PI/2}
+    box([.55,.12,.30],[0,.20,0],al,strain);
+    box([.55,.12,.30],[0,-1.62,0],al,strain);
   }
   // breaker mechanism kiosk and CT secondary box
   box([2.0,2.0,1.5],[132,1.15,zc+5.0],steel,g);
@@ -141,7 +145,7 @@ for(let i=0;i<3;i++){
   for(const x of [128.5,132,136])box([2.0,.35,8],[x,.18,zc],conc,g);
   // phase ID plates
   // phase identification is carried by conductor position and equipment labels; floating plates removed for clarity
-  label('F'+(i+1)+' OUTGOING',[144,8.8,zc-4.6]);
+  
 }
 // 33 kV transformer-side flexible jumpers and bus droppers
 // Duplicate V10 transformer-to-incomer jumpers removed: the primary 33 kV path above is the single source of geometry.
@@ -306,7 +310,10 @@ const feederGroups=[],feederBreakerVisuals=[],feederDisconnectors=[],feederConta
    torus(.48,.11,[136,3.25,z],brown,g,Math.PI/2);
    // physically continuous phase conductor through bay
    tube([[127.8,3.8,z],[131.62,3.55,z]],.065,al,g);
-   tube([[132.38,3.55,z],[136,3.35,z],[141,9,z],[162,10,z]],.065,al,g);
+   // Bay-side conductor terminates at the dead-end clamp.
+   tube([[132.38,3.55,z],[136,3.35,z],[141,7.25,z],[143,7.25,z]],.065,al,g);
+   // Separate outgoing-line conductor starts at the line-side clamp of the strain assembly.
+   tube([[143,5.43,z],[148,7.6,z],[162,10,z]],.065,al,g);
  });
  g.userData.disconnector=ds;feederDisconnectors.push(ds);
  // outgoing steel gantry
@@ -345,7 +352,7 @@ const p33Up=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[63.2,14,z],[68.5,8,z],[
 const p33=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[78.38,3.75,z],[88,4,z],[94,4.4,z],[96,7.9,z],[108,7.9,z],[120,7.9,z],[123,7.2,z]].map(v=>new THREE.Vector3(...v))));
 const flow33Up=[[],[],[]];
 const feederZ=[-28,0,28];
-const pFeeders=feederZ.map(fz=>phaseZ33.map((z,ph)=>new THREE.CatmullRomCurve3([[123,7.2,z],[126,3.8,fz+[-3,0,3][ph]],[132,3.55,fz+[-3,0,3][ph]],[136,3.35,fz+[-3,0,3][ph]],[141,9,fz+[-3,0,3][ph]],[162,10,fz+[-3,0,3][ph]]].map(v=>new THREE.Vector3(...v)))));
+const pFeeders=feederZ.map(fz=>phaseZ33.map((z,ph)=>new THREE.CatmullRomCurve3([[123,7.2,z],[126,3.8,fz+[-3,0,3][ph]],[132,3.55,fz+[-3,0,3][ph]],[136,3.35,fz+[-3,0,3][ph]],[141,7.25,fz+[-3,0,3][ph]],[143,7.25,fz+[-3,0,3][ph]],[143,5.43,fz+[-3,0,3][ph]],[148,7.6,fz+[-3,0,3][ph]],[162,10,fz+[-3,0,3][ph]]].map(v=>new THREE.Vector3(...v)))));
 for(let ph=0;ph<3;ph++){
  for(let i=0;i<22;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/22;flow132[ph].push(o)}
  for(let i=0;i<8;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/8;flow33Up[ph].push(o)}

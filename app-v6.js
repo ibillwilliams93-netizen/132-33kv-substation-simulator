@@ -329,7 +329,8 @@ const hvTag=label('132 kV HV WINDINGS',[51.5,8.2,-8.5]);hvTag.visible=false;cutO
 const fluxTag=label('ALTERNATING MAGNETIC FLUX',[56,5,-8.5]);fluxTag.visible=false;cutObjects.push(fluxTag);
 const lvTag=label('33 kV LV WINDINGS',[60.5,8.2,-8.5]);lvTag.visible=false;cutObjects.push(lvTag);
 reg(tx,'132/33 kV Power Transformer',132,'Transfers energy from the 132 kV system to the 33 kV system by electromagnetic induction. The windings are electrically isolated; energy is coupled through magnetic flux in the core. V9 field detail includes conservator/Buchholz piping, breather, cooling radiators and fans, OLTC enclosure, marshalling kiosk, neutral bushing, gauges, pressure relief, tank earthing and oil containment.');label('132/33 kV POWER TRANSFORMER',[56,22,-11]);
-[-6,0,6].forEach(z=>{tube([[39,6.55,z],[42,8.3,z],[45,12.8,z],[48.8,17,z]],.09);torus(.34,.045,[39,6.55,z],al,scene,Math.PI/2)}); // to HV bushings
+// 132_KV_TRANSFORMER_CONNECTION — exactly three flexible jumpers, one per phase, terminated on actual HV bushing clamps.
+PH132.forEach(z=>{tube([[39,6.55,z],[42,7.4,z],[45.5,12.6,z],[48.8,17.0,z]],.085);torus(.30,.040,[39,6.55,z],al,scene,Math.PI/2)});
 // 33 kV yard
 const cb33g=new THREE.Group();scene.add(cb33g);const cb33Contacts=[];[-3.2,0,3.2].forEach(z=>{pad(78,z,2.2,2);box([1.45,1.15,1.25],[78,.95,z],steel);ins(77.62,1.35,z,2.25,porc);ins(78.38,1.35,z,2.25,porc);const c33=new THREE.Group();c33.position.set(77.62,3.75,z);scene.add(c33);box([.76,.16,.28],[.38,0,0],al,c33);cb33Contacts.push(c33)});// 33 kV incomer receiving terminals
 [-3.2,0,3.2].forEach(z=>box([.28,.20,.34],[78.38,3.75,z],al));

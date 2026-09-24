@@ -125,7 +125,12 @@ for(let x=-70;x<125;x+=3)box([2.75,.12,2.2],[x,.07,27],M(0x6e7371,.05,.82));
 // training state
 const state={power:false,lineIso:true,cb132:true,busIso:true,cb33:true,fault:false,cut:false,earth:false};
 const flow132=[[],[],[]],flow33=[[],[],[]];
-function particle(c){const o=new THREE.Mesh(new THREE.SphereGeometry(.13,8,6),new THREE.MeshBasicMaterial({color:c}));scene.add(o);return o}
+function particle(c){
+ const g=new THREE.Group();
+ const core=new THREE.Mesh(new THREE.SphereGeometry(.24,12,10),new THREE.MeshBasicMaterial({color:c,toneMapped:false}));
+ const glow=new THREE.Mesh(new THREE.SphereGeometry(.48,12,10),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.28,depthWrite:false,toneMapped:false}));
+ g.add(glow,core);scene.add(g);return g
+}
 const phaseZ132=[-6,0,6], phaseZ33=[-3.2,0,3.2];
 const phaseColorsFlow=[0xff3b30,0xffd21f,0x2677ff]; // R Y B
 const p132=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-122,21,z],[-78,21.7,z],[-69,9.5,z],[-53,5.8,z],[-40,5.55,z],[-15,6.2,z],[-2,5.75,z],[22,7.2,z],[39,7.2,z],[48.8,17,z]].map(v=>new THREE.Vector3(...v))));

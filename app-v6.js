@@ -116,37 +116,7 @@ for(const x of [84,96,108,120]){
   box([.4,.35,11],[x,6.2,0],gal);
   for(const z of [-3.2,0,3.2]){ins(x,6.35,z,1.45,porc);box([.65,.10,.28],[x,7.9,z],al)}
 }
-// Three complete feeder support portals and outgoing line dead-end hardware
-for(let i=0;i<3;i++){
-  const zc=-18+i*18;
-  const g=new THREE.Group();scene.add(g);
-  // bay steelwork
-  for(const z of [zc-5.1,zc+5.1]){
-    box([.26,7,.26],[126,3.5,z],gal,g);
-    box([.26,8,.26],[143,4,z],gal,g);
-    beamBetween(new THREE.Vector3(126,1,z),new THREE.Vector3(126,6.5,z+(z<zc?1.8:-1.8)),.07,gal,g);
-    beamBetween(new THREE.Vector3(143,1,z),new THREE.Vector3(143,7.5,z+(z<zc?1.8:-1.8)),.07,gal,g);
-  }
-  box([.30,.28,11],[126,7,zc],gal,g);box([.30,.28,11],[143,8,zc],gal,g);
-  // phase post insulators and take-off clamps
-  for(const dz of [-3.2,0,3.2]){
-    ins(126,7.15,zc+dz,1.35,porc,g);box([.62,.10,.28],[126,8.6,zc+dz],al,g);
-    // Three-phase outgoing dead-end/strain assembly.
-    // The steel gantry is not electrically connected to the phase conductor.
-    const strain=new THREE.Group();strain.position.set(143,7.05,zc+dz);g.add(strain);
-    for(let n=0;n<7;n++){const d=cyl(.25,.11,[0,-n*.24,0],porc,strain,14);d.rotation.z=Math.PI/2}
-    box([.55,.12,.30],[0,.20,0],al,strain);
-    box([.55,.12,.30],[0,-1.62,0],al,strain);
-  }
-  // breaker mechanism kiosk and CT secondary box
-  box([2.0,2.0,1.5],[132,1.15,zc+5.0],steel,g);
-  box([.75,.9,.65],[136,1.0,zc+4.2],steel,g);
-  // local concrete equipment pads
-  for(const x of [128.5,132,136])box([2.0,.35,8],[x,.18,zc],conc,g);
-  // phase ID plates
-  // phase identification is carried by conductor position and equipment labels; floating plates removed for clarity
-  
-}
+// V10 feeder exit cleanup: duplicate secondary portal/strain geometry removed.
 // 33 kV transformer-side flexible jumpers and bus droppers
 // Duplicate V10 transformer-to-incomer jumpers removed: the primary 33 kV path above is the single source of geometry.
 // Cable trench spine serving feeder mechanisms
@@ -310,14 +280,17 @@ const feederGroups=[],feederBreakerVisuals=[],feederDisconnectors=[],feederConta
    torus(.48,.11,[136,3.25,z],brown,g,Math.PI/2);
    // physically continuous phase conductor through bay
    tube([[127.8,3.8,z],[131.62,3.55,z]],.065,al,g);
-   // Bay-side conductor terminates at the dead-end clamp.
-   tube([[132.38,3.55,z],[136,3.35,z],[141,7.25,z],[143,7.25,z]],.065,al,g);
-   // Separate outgoing-line conductor starts at the line-side clamp of the strain assembly.
-   tube([[143,5.43,z],[148,7.6,z],[162,10,z]],.065,al,g);
+   // Feeder primary conductor remains electrically continuous through the dead-end clamp.
+   // The strain insulator mechanically ties that energized clamp back to the earthed gantry.
+   tube([[132.38,3.55,z],[136,3.35,z],[140.25,8.0,z],[141.85,8.0,z],[148,8.8,z],[162,10,z]],.065,al,g);
+   // Horizontal strain string: gantry steel -> porcelain discs -> live conductor clamp.
+   const sg=new THREE.Group();sg.position.set(141.0,8.0,z);scene.add(sg);
+   for(let n=0;n<6;n++){const d=cyl(.24,.11,[.15+n*.22,0,0],porc,sg,14);d.rotation.z=Math.PI/2}
+   box([.32,.14,.28],[1.52,0,0],al,sg);
  });
  g.userData.disconnector=ds;feederDisconnectors.push(ds);
  // outgoing steel gantry
- box([.35,11,.35],[141,5.5,fz-5],gal,g);box([.35,11,.35],[141,5.5,fz+5],gal,g);box([.4,.4,11],[141,9,fz],gal,g);
+ box([.35,11,.35],[141,5.5,fz-5],gal,g);box([.35,11,.35],[141,5.5,fz+5],gal,g);box([.4,.4,11],[141,8,fz],gal,g);
  // breaker mechanism cabinet
  box([2.2,1.8,1.6],[132,.9,fz+6.2],steel,g);
  reg(g,'33 kV Feeder '+(i+1),33,'Complete outgoing feeder bay: bus take-off, disconnector, circuit breaker, current transformer and outgoing gantry. The circuit breaker interrupts load/fault current; the disconnector provides visible isolation after the breaker is open.');
@@ -352,7 +325,7 @@ const p33Up=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[63.2,14,z],[68.5,8,z],[
 const p33=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[78.38,3.75,z],[88,4,z],[94,4.4,z],[96,7.9,z],[108,7.9,z],[120,7.9,z],[123,7.2,z]].map(v=>new THREE.Vector3(...v))));
 const flow33Up=[[],[],[]];
 const feederZ=[-28,0,28];
-const pFeeders=feederZ.map(fz=>phaseZ33.map((z,ph)=>new THREE.CatmullRomCurve3([[123,7.2,z],[126,3.8,fz+[-3,0,3][ph]],[132,3.55,fz+[-3,0,3][ph]],[136,3.35,fz+[-3,0,3][ph]],[141,7.25,fz+[-3,0,3][ph]],[143,7.25,fz+[-3,0,3][ph]],[143,5.43,fz+[-3,0,3][ph]],[148,7.6,fz+[-3,0,3][ph]],[162,10,fz+[-3,0,3][ph]]].map(v=>new THREE.Vector3(...v)))));
+const pFeeders=feederZ.map(fz=>phaseZ33.map((z,ph)=>new THREE.CatmullRomCurve3([[123,7.2,z],[126,3.8,fz+[-3,0,3][ph]],[132,3.55,fz+[-3,0,3][ph]],[136,3.35,fz+[-3,0,3][ph]],[140.25,8.0,fz+[-3,0,3][ph]],[141.85,8.0,fz+[-3,0,3][ph]],[148,8.8,fz+[-3,0,3][ph]],[162,10,fz+[-3,0,3][ph]]].map(v=>new THREE.Vector3(...v)))));
 for(let ph=0;ph<3;ph++){
  for(let i=0;i<22;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/22;flow132[ph].push(o)}
  for(let i=0;i<8;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/8;flow33Up[ph].push(o)}

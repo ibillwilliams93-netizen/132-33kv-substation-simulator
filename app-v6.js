@@ -312,7 +312,7 @@ const phaseColors=[0xd94b42,0xe7c447,0x4f7fd7];
 for(let x=-70;x<125;x+=3)box([2.75,.12,2.2],[x,.07,27],M(0x6e7371,.05,.82));
 // training state
 const state={power:false,lineIso:true,cb132:true,busIso:true,cb33:true,feeders:[true,true,true],feederIso:[true,true,true],feederFault:[false,false,false],fault:false,cut:false,earth:false,training:false,trainingStep:0,trainingErrors:0,protPulse:0,faultZone:''};
-const flow132=[[],[],[]],flow33=[[],[],[]],flowFeeders=Array.from({length:3},()=>[[],[],[]]);
+const flow33=[[],[],[]],flowFeeders=Array.from({length:3},()=>[[],[],[]]);
 function particle(c){
  const g=new THREE.Group();
  const core=new THREE.Mesh(new THREE.SphereGeometry(.30,14,12),new THREE.MeshBasicMaterial({color:c,toneMapped:false}));

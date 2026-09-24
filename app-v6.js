@@ -49,41 +49,104 @@ for(const x of [-70,-25,20,65,110,135]){box([.18,8,.18],[x,4,50],gal);box([2.2,.
 // buried earthing
 for(let x=-85;x<135;x+=10){const e=box([.04,.035,98],[x,-.08,-2],copper);earthObjects.push(e)}
 for(let z=-48;z<48;z+=10){const e=box([220,.035,.04],[25,-.08,z],copper);earthObjects.push(e)}
-// 132 gantry + sagging incoming
-lattice(-78,-9,20);lattice(-78,9,20);box([1.2,.8,20],[-78,18,0],gal);
-[-6,0,6].forEach(z=>{ins(-78,18,z,3.6,brown);tube([[-125,21,z],[-108,19.4,z],[-94,19.1,z],[-78,21.7,z],[-69,9.5,z]],.095)});
-label('132 kV INCOMING',[-88,26,-11]);
-// arresters shunt
-const la=new THREE.Group();scene.add(la);[-6,0,6].forEach(z=>{pad(-65,z,1.8,1.8);ins(-65,.4,z,4.7,brown);tube([[-69,9.5,z],[-65,5.3,z]],.05);const e=tube([[-65,.45,z],[-65,-.05,z]],.04,copper);earthObjects.push(e)});reg(la,'132 kV Surge Arresters',132,'Limits overvoltage by diverting surge current to earth. It is connected phase-to-earth, not in series with normal load current.');label('SURGE ARRESTERS',[-65,8.5,-10]);
-// disconnectors with real blades
-function disconnector(x,name){const g=new THREE.Group();scene.add(g);[-6,0,6].forEach(z=>{pad(x,z,4.4,2.4);ins(x-1.45,.4,z,4.7,brown);ins(x+1.45,.4,z,4.7,brown);const pivot=new THREE.Group();pivot.position.set(x-1.45,5.3,z);scene.add(pivot);const blade=box([3,.13,.18],[1.5,0,0],al,pivot);cyl(.18,.28,[2.92,0,0],copper,pivot);g.add(pivot);
- box([3.8,.16,.16],[x,.62,z],gal);cyl(.12,4.5,[x,.62,z+.75],gal);beamBetween([x,.75,z+.75],[x-1.35,5.15,z],.06,gal);g.userData.blades=(g.userData.blades||[]);g.userData.blades.push(pivot)});reg(g,name,132,'Provides a visible isolation gap. It is not intended to interrupt fault current or normal load current.');return g}
-const lineDisc=disconnector(-53,'132 kV Line Disconnector');[-6,0,6].forEach(z=>{box([.38,.18,.34],[-54.45,5.3,z],al);box([.38,.18,.34],[-51.55,5.3,z],al)});label('LINE DISCONNECTOR',[-53,8.8,-10]);
-// CT
-const ct=new THREE.Group();scene.add(ct);[-6,0,6].forEach(z=>{pad(-40,z);box([1.25,.7,1.25],[-40,.75,z],steel);ins(-40,1.05,z,3.7,brown);cyl(.82,1.05,[-40,4.25,z],brown);torus(.78,.16,[-40,4.8,z],brown,scene,Math.PI/2);box([1.35,.16,.28],[-40,5.35,z],al)});reg(ct,'132 kV Current Transformers',132,'Measures primary current for metering and protection. Secondary circuits are separate from the primary power conductor.');label('CURRENT TRANSFORMERS',[-40,8.8,-10]);
-// CVT shunt measurement
-const cvt=new THREE.Group();scene.add(cvt);[-6,0,6].forEach(z=>{pad(-29,z);box([1.65,1.15,1.55],[-29,.95,z],steel);ins(-29,1.45,z,5.35,brown);cyl(.42,.6,[-29,6.95,z],steel);box([1.15,.12,.22],[-29,7.28,z],al)});reg(cvt,'132 kV CVT / VT',132,'Provides scaled voltage signals for metering, protection and synchronization; it does not carry the main load current.');label('CVT / VT',[-29,9.6,-10]);
-// breaker
-const breaker=new THREE.Group();scene.add(breaker);const cb132Contacts=[];[-6,0,6].forEach(z=>{pad(-15,z,2.8,2.6);box([1.8,1.25,1.5],[-15,1,z],steel);ins(-15.42,1.55,z,3.35,porc);ins(-14.58,1.55,z,3.35,porc);cyl(.52,1.55,[-15,5.15,z],steel);const c132=new THREE.Group();c132.position.set(-15.42,5.95,z);scene.add(c132);box([.84,.18,.35],[.42,0,0],al,c132);cb132Contacts.push(c132)});box([3.2,2.4,2.2],[-15,1.2,10],steel);// CB receiving terminal pads: fixed conductors stop here; moving blade bridges the air gap only when closed.
-[-6,0,6].forEach(z=>box([.34,.22,.42],[-14.58,5.95,z],al));reg(breaker,'132 kV Circuit Breaker',132,'Interrupts load and fault current when commanded by protection or control systems.');label('132 kV CIRCUIT BREAKER',[-15,9.3,-10]);
-const busDisc=disconnector(-2,'132 kV Bus Disconnector');[-6,0,6].forEach(z=>{box([.38,.18,.34],[-3.45,5.3,z],al);box([.38,.18,.34],[-.55,5.3,z],al)});label('BUS DISCONNECTOR',[-2,8.8,-10]);
-// primary conductor continuity; CVT taps are separate
+// V10 Phase 6B — clean 132 kV single-bay rebuild
+// One unambiguous three-phase primary path. Fixed conductors terminate at every switching device.
+// CVT and surge arrester are shunt branches only.
+
+// Incoming line gantry and three phase strain terminations
+lattice(-78,-9,20);lattice(-78,9,20);box([1.0,.65,20],[-78,18,0],gal);
 [-6,0,6].forEach(z=>{
- // Incoming line terminates at line-disconnector source terminal.
- tube([[-69,9.5,z],[-54.45,5.3,z]],.085);
- // Line-disconnector load terminal -> CT -> 132 kV CB line terminal.
- tube([[-51.55,5.3,z],[-40,5.55,z],[-15.42,5.95,z]],.085);
- // 132 kV CB bus terminal -> bus-disconnector source terminal.
- tube([[-14.58,5.95,z],[-3.45,5.3,z]],.085);
- // Bus-disconnector load terminal -> rigid 132 kV bus.
- tube([[-.55,5.3,z],[8,7.2,z]],.085);
- // CVT is a shunt voltage tap from the primary conductor.
- tube([[-40,5.55,z],[-29,6.7,z]],.045)
+  ins(-78,18,z,3.5,brown);
+  sagTube([-125,21,z],[-78,21.5,z],1.0,.09,al);
+  tube([[-78,21.5,z],[-70,10.2,z]],.085);
 });
-// V8 bus support steel portals
-for(const x of [9,31]){for(const z of [-8,8])box([.22,7,.22],[x,3.5,z],gal);box([.28,.28,17],[x,6.7,0],gal)}
-// bus
-[-6,0,6].forEach(z=>{ins(10,.3,z,6.2,brown);ins(31,.3,z,6.2,brown);tube([[8,7.2,z],[39,7.2,z]],.115)});label('132 kV BUSBAR',[22,11,-10]);
+label('132 kV INCOMING',[-88,25,-11]);
+
+// Surge arresters — phase-to-earth shunt branches, never series elements
+const la=new THREE.Group();scene.add(la);
+[-6,0,6].forEach(z=>{
+  pad(-66,z,1.6,1.6);ins(-66,.35,z,4.4,brown);
+  box([.46,.12,.30],[-66,5.0,z],al);
+  tube([[-70,10.2,z],[-66,5.0,z]],.045);
+  const e=tube([[-66,.35,z],[-66,-.05,z]],.04,copper);earthObjects.push(e)
+});
+reg(la,'132 kV Surge Arresters',132,'Limits overvoltage by diverting surge current to earth. It is connected phase-to-earth, not in series with normal load current.');
+label('SURGE ARRESTERS',[-66,8.2,-10]);
+
+// Disconnectors: two post insulators per phase, fixed terminals, moving blade is the only bridge
+function disconnector(x,name){
+ const g=new THREE.Group();scene.add(g);g.userData.blades=[];
+ [-6,0,6].forEach(z=>{
+   pad(x,z,4.2,2.1);
+   ins(x-1.5,.35,z,4.55,brown);ins(x+1.5,.35,z,4.55,brown);
+   box([.38,.16,.34],[x-1.5,5.0,z],al);box([.38,.16,.34],[x+1.5,5.0,z],al);
+   const pivot=new THREE.Group();pivot.position.set(x-1.5,5.0,z);scene.add(pivot);
+   box([3.0,.13,.18],[1.5,0,0],al,pivot);cyl(.16,.24,[2.94,0,0],copper,pivot);
+   g.add(pivot);g.userData.blades.push(pivot);
+ });
+ reg(g,name,132,'Provides a visible isolation gap. It is not intended to interrupt fault current or normal load current.');
+ return g
+}
+const lineDisc=disconnector(-55,'132 kV Line Disconnector');label('LINE DISCONNECTOR',[-55,8.0,-10]);
+
+// CTs in series with the primary conductor
+const ct=new THREE.Group();scene.add(ct);
+[-6,0,6].forEach(z=>{
+ pad(-43,z,1.8,1.8);box([1.15,.65,1.15],[-43,.72,z],steel);
+ ins(-43,1.0,z,3.55,brown);cyl(.78,.92,[-43,4.15,z],brown);
+ torus(.74,.14,[-43,4.72,z],brown,scene,Math.PI/2);
+ box([.72,.14,.30],[-43,5.18,z],al)
+});
+reg(ct,'132 kV Current Transformers',132,'Measures primary current for metering and protection. Secondary circuits are separate from the primary power conductor.');
+label('CURRENT TRANSFORMERS',[-43,8.0,-10]);
+
+// CVTs are shunt voltage measurement devices
+const cvt=new THREE.Group();scene.add(cvt);
+[-6,0,6].forEach(z=>{
+ pad(-32,z,1.65,1.65);box([1.35,.95,1.35],[-32,.82,z],steel);
+ ins(-32,1.25,z,4.7,brown);box([.62,.12,.28],[-32,6.05,z],al)
+});
+reg(cvt,'132 kV CVT / VT',132,'Provides scaled voltage signals for metering, protection and synchronization; it does not carry the main load current.');
+label('CVT / VT',[-32,8.6,-10]);
+
+// 132 kV circuit breaker: separate line and bus terminals with moving contact bridge
+const breaker=new THREE.Group();scene.add(breaker);const cb132Contacts=[];
+[-6,0,6].forEach(z=>{
+ pad(-19,z,3.0,2.5);box([1.8,1.2,1.5],[-19,.95,z],steel);
+ ins(-19.5,1.35,z,3.4,porc);ins(-18.5,1.35,z,3.4,porc);
+ box([.36,.18,.36],[-19.5,5.2,z],al);box([.36,.18,.36],[-18.5,5.2,z],al);
+ const c132=new THREE.Group();c132.position.set(-19.5,5.2,z);scene.add(c132);
+ box([1.0,.17,.32],[.5,0,0],al,c132);cb132Contacts.push(c132)
+});
+box([2.8,2.1,2.0],[-19,1.05,10],steel);
+reg(breaker,'132 kV Circuit Breaker',132,'Interrupts load and fault current when commanded by protection or control systems.');
+label('132 kV CIRCUIT BREAKER',[-19,8.4,-10]);
+
+const busDisc=disconnector(-7,'132 kV Bus Disconnector');label('BUS DISCONNECTOR',[-7,8.0,-10]);
+
+// Fixed primary conductors — each section lands exactly on equipment terminals
+[-6,0,6].forEach(z=>{
+ // gantry/LA junction -> line disconnector source
+ tube([[-70,10.2,z],[-56.5,5.0,z]],.082);
+ // line disconnector load -> CT -> CB line terminal
+ tube([[-53.5,5.0,z],[-43,5.18,z],[-19.5,5.2,z]],.082);
+ // CVT shunt tap from CT/CB conductor
+ tube([[-36.5,5.19,z],[-32,6.05,z]],.042);
+ // CB bus terminal -> bus disconnector source
+ tube([[-18.5,5.2,z],[-8.5,5.0,z]],.082);
+ // bus disconnector load -> main bus
+ tube([[-5.5,5.0,z],[4,7.3,z]],.082)
+});
+
+// Clean rigid 132 kV bus with dedicated post supports
+for(const x of [8,30]){for(const z of [-8,8])box([.22,6.8,.22],[x,3.4,z],gal);box([.28,.26,17],[x,6.75,0],gal)}
+[-6,0,6].forEach(z=>{
+ ins(8,.3,z,6.35,brown);ins(30,.3,z,6.35,brown);
+ box([.46,.12,.32],[8,7.05,z],al);box([.46,.12,.32],[30,7.05,z],al);
+ tube([[4,7.3,z],[39,7.3,z]],.105)
+});
+label('132 kV BUSBAR',[20,10.7,-10]);
+
 // transformer local group centered correctly
 box([32,.55,28],[56,.275,0],conc);for(const [s,p] of [[[34,.7,1],[56,.35,-15]],[[34,.7,1],[56,.35,15]],[[1,.7,30],[39,.35,0]],[[1,.7,30],[73,.35,0]]])box(s,p,conc);
 const tx=new THREE.Group();tx.position.set(56,.55,0);scene.add(tx);const tank=box([17,9,12],[0,5,0],txmat,tx);cutObjects.push(tank);box([18,.45,13],[0,9.9,0],txmat,tx);
@@ -241,7 +304,7 @@ const hvTag=label('132 kV HV WINDINGS',[51.5,8.2,-8.5]);hvTag.visible=false;cutO
 const fluxTag=label('ALTERNATING MAGNETIC FLUX',[56,5,-8.5]);fluxTag.visible=false;cutObjects.push(fluxTag);
 const lvTag=label('33 kV LV WINDINGS',[60.5,8.2,-8.5]);lvTag.visible=false;cutObjects.push(lvTag);
 reg(tx,'132/33 kV Power Transformer',132,'Transfers energy from the 132 kV system to the 33 kV system by electromagnetic induction. The windings are electrically isolated; energy is coupled through magnetic flux in the core. V9 field detail includes conservator/Buchholz piping, breather, cooling radiators and fans, OLTC enclosure, marshalling kiosk, neutral bushing, gauges, pressure relief, tank earthing and oil containment.');label('132/33 kV POWER TRANSFORMER',[56,22,-11]);
-[-6,0,6].forEach(z=>{tube([[39,7.2,z],[42,8.2,z],[45,12.8,z],[48.8,17,z]],.09);torus(.34,.045,[39,7.2,z],al,scene,Math.PI/2)}); // to HV bushings
+[-6,0,6].forEach(z=>{tube([[39,7.3,z],[42,8.3,z],[45,12.8,z],[48.8,17,z]],.09);torus(.34,.045,[39,7.3,z],al,scene,Math.PI/2)}); // to HV bushings
 // 33 kV yard
 const cb33g=new THREE.Group();scene.add(cb33g);const cb33Contacts=[];[-3.2,0,3.2].forEach(z=>{pad(78,z,2.2,2);box([1.45,1.15,1.25],[78,.95,z],steel);ins(77.62,1.35,z,2.25,porc);ins(78.38,1.35,z,2.25,porc);const c33=new THREE.Group();c33.position.set(77.62,3.75,z);scene.add(c33);box([.76,.16,.28],[.38,0,0],al,c33);cb33Contacts.push(c33)});// 33 kV incomer receiving terminals
 [-3.2,0,3.2].forEach(z=>box([.28,.20,.34],[78.38,3.75,z],al));
@@ -323,12 +386,11 @@ function particle(c){
 }
 const phaseZ132=[-6,0,6], phaseZ33=[-3.2,0,3.2];
 const phaseColorsFlow=[0xff3b30,0xffd21f,0x2677ff]; // R Y B
-const p132Line=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-122,21,z],[-78,21.7,z],[-69,9.5,z],[-54.45,5.3,z]].map(v=>new THREE.Vector3(...v))));
-const p132AfterLineIso=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-51.55,5.3,z],[-40,5.55,z],[-15.42,5.95,z]].map(v=>new THREE.Vector3(...v))));
-const p132AfterCB=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-14.58,5.95,z],[-3.45,5.3,z]].map(v=>new THREE.Vector3(...v))));
-const p132Bus=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-.55,5.3,z],[8,7.2,z],[22,7.2,z],[39,7.2,z],[48.8,17,z]].map(v=>new THREE.Vector3(...v))));
+const p132Line=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-122,21,z],[-90,20.6,z],[-78,21.5,z],[-70,10.2,z],[-56.5,5,z]].map(v=>new THREE.Vector3(...v))));
+const p132AfterLineIso=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-53.5,5,z],[-43,5.18,z],[-19.5,5.2,z]].map(v=>new THREE.Vector3(...v))));
+const p132AfterCB=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-18.5,5.2,z],[-8.5,5,z]].map(v=>new THREE.Vector3(...v))));
+const p132Bus=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-5.5,5,z],[4,7.3,z],[20,7.3,z],[39,7.3,z],[45,12.8,z],[48.8,17,z]].map(v=>new THREE.Vector3(...v))));
 const flow132Line=[[],[],[]],flow132AfterLineIso=[[],[],[]],flow132AfterCB=[[],[],[]],flow132Bus=[[],[],[]];
-// 33 kV main path stops at the bus; each outgoing feeder branches cleanly from the bus.
 const p33Up=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[63.2,14,z],[68.5,8,z],[73.5,4.25,z],[77.62,3.75,z]].map(v=>new THREE.Vector3(...v))));
 const p33=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[78.38,3.75,z],[88,4,z],[94,4.4,z],[96,7.9,z],[108,7.9,z],[120,7.9,z],[123,7.2,z]].map(v=>new THREE.Vector3(...v))));
 const flow33Up=[[],[],[]];

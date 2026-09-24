@@ -99,6 +99,56 @@ cyl(.42,.45,[-3.5,10.45,3.8],M(0xb5b9b6,.55,.35),tx);
 for(const x of [-6,6])for(const z of [-4.7,4.7]){const w=cyl(.42,.5,[x,.2,z],black,tx,18);w.rotation.z=Math.PI/2}
 for(const z of [-3,3])torus(.34,.055,[-8.2,8.1,z],gal,tx,0);
 cyl(.38,.18,[6.2,8.8,5.8],M(0xe7e1d0,.05,.25),tx);box([.08,1.1,.08],[6.2,9.45,5.8],gal,tx);
+// V10 Phase 2 — 132 kV incoming bay realism
+// Heavy galvanized incoming portal with crossarm bracing and phase attachment strings
+const inPortal=new THREE.Group();scene.add(inPortal);
+for(const z of [-9,9]){
+  box([.55,13,.55],[-48,6.5,z],gal,inPortal);
+  for(let y=1.5;y<12;y+=2.4){
+    const b1=beamBetween(new THREE.Vector3(-48,y,z),new THREE.Vector3(-48,y+2.1,z+(z<0?2.2:-2.2)),.09,gal,inPortal);
+    const b2=beamBetween(new THREE.Vector3(-48,y,z),new THREE.Vector3(-48,y+2.1,z+(z<0?-2.2:2.2)),.09,gal,inPortal);
+  }
+}
+box([1,1,20],[-48,13,0],gal,inPortal);
+for(const z of [-6,0,6]){
+  box([2.2,.22,.35],[-48,12.7,z],gal,inPortal);
+  // suspension/tension insulator string and terminal clamp
+  for(let y=11.2;y<=12.3;y+=.28)cyl(.28,.12,[-48,y,z],porc,inPortal,14);
+  box([.65,.16,.34],[-47.7,10.95,z],al,inPortal);
+}
+// Surge arrester pedestals, grading rings and earth tails
+for(const z of [-6,0,6]){
+  box([1.4,.55,1.4],[-40,.28,z],conc);
+  ins(-40,.55,z,4.4,brown,scene);
+  torus(.48,.045,[-40,5.05,z],al,scene,Math.PI/2);
+  tube([[-40,.7,z],[-40,.15,z],[-39.2,.05,z]],.055,copper);
+}
+// Dedicated CT/CVT support stools and secondary terminal boxes
+for(const z of [-6,0,6]){
+  box([1.5,.45,1.5],[-28,.23,z],conc);box([.8,1,.65],[-28,1.0,z+.75],steel);
+  box([1.5,.45,1.5],[-22,.23,z],conc);box([.8,1,.65],[-22,1.0,z+.75],steel);
+}
+// CB mechanism cabinet, operating linkage and phase terminal corona rings
+box([2.4,2.4,1.8],[-15,1.35,8],steel);
+for(const z of [-6,0,6]){
+  torus(.42,.045,[-16.0,6.0,z],al,scene,Math.PI/2);
+  torus(.42,.045,[-14.0,6.0,z],al,scene,Math.PI/2);
+  tube([[-15,2.2,8],[-15,3.0,z]],.045,steel);
+}
+// 132 kV bus support portals with bracing and post-insulator terminal caps
+for(const x of [-7,5,17,29,39]){
+  for(const z of [-9,9]){box([.4,9,.4],[x,4.5,z],gal);beamBetween(new THREE.Vector3(x,1,z),new THREE.Vector3(x,8,z+(z<0?2:-2)),.07,gal)}
+  box([.55,.45,19],[x,9,0],gal);
+  for(const z of [-6,0,6]){ins(x,9.15,z,2.4,porc);box([.8,.12,.35],[x,11.7,z],al)}
+}
+// Flexible incoming jumpers: gantry → arrester/disconnector/measurement/CB chain visual continuity
+for(const z of [-6,0,6]){
+  tube([[-48,10.95,z],[-45,10.2,z],[-42,7.2,z],[-40,5.25,z]],.075);
+  tube([[-40,5.25,z],[-37,6.2,z],[-34,6.2,z]],.075);
+}
+// Equipment identification boards
+label('132 kV INCOMING GANTRY',[-48,16,-11]);
+label('132 kV SURGE ARRESTERS',[-40,8,-11]);
 // V10 Phase 1 — engineering-model realism pass: transformer bay + primary connections
 // Transformer rail tracks, wheel stops and heavier plinth detailing
 for(const z of [-4.8,4.8]){

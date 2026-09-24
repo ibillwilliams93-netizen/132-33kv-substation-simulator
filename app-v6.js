@@ -134,10 +134,7 @@ for(let i=0;i<3;i++){
   label('F'+(i+1)+' OUTGOING',[144,8.8,zc-4.6]);
 }
 // 33 kV transformer-side flexible jumpers and bus droppers
-for(const z of [-3.2,0,3.2]){
-  tube([[63.2,14,z],[67,11.5,z],[72,7.5,z],[78,4.2,z],[84,7.9,z]],.065);
-  torus(.30,.04,[63.2,14,z],al,scene,Math.PI/2);
-}
+// Duplicate V10 transformer-to-incomer jumpers removed: the primary 33 kV path above is the single source of geometry.
 // Cable trench spine serving feeder mechanisms
 box([63,.22,2.0],[113,.12,12],M(0x6d7475,.85,.25));
 for(let x=83;x<=143;x+=3.5)box([3.1,.08,1.75],[x,.27,12],M(0x8b9291,.8,.25));
@@ -262,13 +259,13 @@ reg(tx,'132/33 kV Power Transformer',132,'Transfers energy from the 132 kV syste
 const cb33g=new THREE.Group();scene.add(cb33g);const cb33Contacts=[];[-3.2,0,3.2].forEach(z=>{pad(78,z,2.2,2);box([1.45,1.15,1.25],[78,.95,z],steel);ins(77.62,1.35,z,2.25,porc);ins(78.38,1.35,z,2.25,porc);const c33=box([1.25,.16,.28],[78,3.75,z],al);cb33Contacts.push(c33)});reg(cb33g,'33 kV Transformer Incomer Circuit Breaker',33,'Controls and protects the transformer connection to the 33 kV bus.');label('33 kV INCOMER CB',[78,7,-8]);
 const inst33=new THREE.Group();scene.add(inst33);[-3.2,0,3.2].forEach(z=>{pad(88,z,1.8,1.8);box([.9,.55,.9],[88,.7,z],steel);ins(88,1,z,2.5,porc)});reg(inst33,'33 kV CT / VT',33,'Provides current and voltage measurements for 33 kV protection and metering.');label('33 kV CT / VT',[88,6.5,-8]);
 [-3.2,0,3.2].forEach(z=>{
-  // Transformer LV terminal -> incomer CB -> CT/VT.
-  tube([[63.2,14,z],[70,5.2,z],[78,4.25,z],[88,4.0,z],[94,4.4,z]],.07);
-  // Riser from instrument-transformer side to the new elevated 33 kV bus.
+  // One physical phase conductor per 33 kV transformer bushing.
+  // Keep this primary path single and continuous: LV bushing -> incomer CB -> CT/VT.
+  tube([[63.2,14,z],[68.5,8.0,z],[73.5,4.25,z],[78,4.25,z],[88,4.0,z],[94,4.4,z]],.07);
+  // Riser from instrument-transformer side to the elevated 33 kV bus.
   tube([[94,4.4,z],[96,7.9,z]],.07);
-  // Main bus now rests on the new post-insulator support line at x=96/108/120.
+  // Main bus on the new post-insulator support line.
   tube([[96,7.9,z],[108,7.9,z],[120,7.9,z]],.08);
-  // Short controlled drop to the feeder take-off point.
   tube([[120,7.9,z],[123,7.2,z]],.07);
 });label('33 kV BUSBAR',[108,10.4,-7]);
 // V9 Phase 2: three complete, visually distinct 33 kV feeder bays.
@@ -327,7 +324,7 @@ const phaseZ132=[-6,0,6], phaseZ33=[-3.2,0,3.2];
 const phaseColorsFlow=[0xff3b30,0xffd21f,0x2677ff]; // R Y B
 const p132=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[-122,21,z],[-78,21.7,z],[-69,9.5,z],[-53,5.8,z],[-40,5.55,z],[-15,6.2,z],[-2,5.75,z],[22,7.2,z],[39,7.2,z],[48.8,17,z]].map(v=>new THREE.Vector3(...v))));
 // 33 kV main path stops at the bus; each outgoing feeder branches cleanly from the bus.
-const p33=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[63.2,14,z],[70,5.2,z],[78,4.25,z],[88,4,z],[94,4.4,z],[96,7.9,z],[108,7.9,z],[120,7.9,z],[123,7.2,z]].map(v=>new THREE.Vector3(...v))));
+const p33=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[63.2,14,z],[68.5,8,z],[73.5,4.25,z],[78,4.25,z],[88,4,z],[94,4.4,z],[96,7.9,z],[108,7.9,z],[120,7.9,z],[123,7.2,z]].map(v=>new THREE.Vector3(...v))));
 const feederZ=[-28,0,28];
 const pFeeders=feederZ.map(fz=>phaseZ33.map((z,ph)=>new THREE.CatmullRomCurve3([[123,7.2,z],[126,3.8,fz+[-3,0,3][ph]],[132,3.55,fz+[-3,0,3][ph]],[136,3.35,fz+[-3,0,3][ph]],[141,9,fz+[-3,0,3][ph]],[162,10,fz+[-3,0,3][ph]]].map(v=>new THREE.Vector3(...v)))));
 for(let ph=0;ph<3;ph++){

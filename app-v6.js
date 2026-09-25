@@ -41,11 +41,15 @@ function lattice(x,z,h=18){const g=new THREE.Group();g.position.set(x,0,z);scene
 const labelRegistry=new Map();function label(t,p){if(labelRegistry.has(t))return labelRegistry.get(t);const c=document.createElement('canvas');c.width=512;c.height=84;const q=c.getContext('2d');q.fillStyle='#06131ddd';q.roundRect(2,2,508,80,13);q.fill();q.fillStyle='#fff';q.font='bold 25px Arial';q.textAlign='center';q.fillText(t,256,52);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),depthTest:false}));s.position.set(...p);s.scale.set(6.4,1.08,1);s.material.opacity=.86;s.renderOrder=20;scene.add(s);s.userData={isEquipmentLabel:true,labelText:t,target:new THREE.Vector3(...p)};labels.push(s);labelRegistry.set(t,s);return s}
 // Civil works
 // V7 crushed-rock yard: vertex-level tone variation avoids the flat CAD look
-const gg=new THREE.PlaneGeometry(270,130,80,40);
+// Finished substation formation: extend the yard slab/ground to the enlarged perimeter.
+// The previous 270 x 130 plane stopped short of the new south fence and exposed the sky/background below the site.
+const gg=new THREE.PlaneGeometry(270,150,80,44);
 const gc=[];for(let i=0;i<gg.attributes.position.count;i++){const n=.43+Math.random()*.09;gc.push(n,n*.99,n*.94)}
 gg.setAttribute('color',new THREE.Float32BufferAttribute(gc,3));
 const gmat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,metalness:0});
-const ground=new THREE.Mesh(gg,gmat);ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+const ground=new THREE.Mesh(gg,gmat);ground.rotation.x=-Math.PI/2;ground.position.z=8;ground.receiveShadow=true;scene.add(ground);
+// Perimeter formation/base thickness prevents a floating-paper appearance at oblique camera angles.
+box([250,.55,126],[25,-.30,8],M(0x777872,0,1));
 box([250,.12,.5],[25,.06,71],conc);box([250,.12,.5],[25,.06,-55],conc);
 for(const x of [-96,146])box([.22,2.3,126],[x,1.15,8],gal);
 for(let z=-54;z<=70;z+=6){box([.16,2.3,.16],[-96,1.15,z],gal);box([.16,2.3,.16],[146,1.15,z],gal)}

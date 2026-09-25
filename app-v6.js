@@ -116,17 +116,32 @@ const mastLocations=[
  [-82,58],[-20,58],[45,58],[105,58],[135,58]
 ];
 mastLocations.forEach(([x,z],i)=>{
- // concrete footing + tapered-looking galvanized mast
- box([1.8,.42,1.8],[x,.21,z],conc,lightningGroup);
- cyl(.16,.24,[x,7.0,z],gal,lightningGroup,14);
- cyl(.095,.16,[x,16.0,z],gal,lightningGroup,14);
- // pointed air terminal at approximately 25 m model height
- const tip=cyl(.018,.07,[x,24.0,z],al,lightningGroup,10);
- // two visible earth bonds from mast base to buried station grid
- const bond=tube([[x-.18,.35,z],[x-.65,.08,z],[x-.65,-.18,z]],.045,copper,lightningGroup);
+ // Highly visible lattice-style lightning mast with a substantial base and air terminal.
+ box([2.8,.55,2.8],[x,.275,z],conc,lightningGroup);
+ const mastH=27;
+ // four galvanized legs taper visually toward the top
+ for(const [dx,dz] of [[-.48,-.48],[.48,-.48],[-.48,.48],[.48,.48]]){
+   beamBetween([x+dx,.55,z+dz],[x+dx*.18,mastH-1.8,z+dz*.18],.095,gal,lightningGroup);
+ }
+ // horizontal and diagonal lattice bracing
+ for(let y=2;y<mastH-2;y+=2.4){
+   const t=1-y/mastH, r=.12+.48*t;
+   beamBetween([x-r,y,z-r],[x+r,y,z-r],.055,gal,lightningGroup);
+   beamBetween([x-r,y,z+r],[x+r,y,z+r],.055,gal,lightningGroup);
+   beamBetween([x-r,y,z-r],[x-r,y,z+r],.055,gal,lightningGroup);
+   beamBetween([x+r,y,z-r],[x+r,y,z+r],.055,gal,lightningGroup);
+   beamBetween([x-r,y,z-r],[x+r,y+2.2,z-r],.045,gal,lightningGroup);
+   beamBetween([x-r,y,z+r],[x+r,y+2.2,z+r],.045,gal,lightningGroup);
+ }
+ // prominent pointed air terminal above the mast.
+ cyl(.075,.12,[x,mastH,z],al,lightningGroup,12);
+ cyl(.018,.075,[x,mastH+2.5,z],al,lightningGroup,10);
+ const tip=box([.18,.18,.18],[x,mastH+5.0,z],al,lightningGroup);
+ // visible copper bond to the station earth grid
+ const bond=tube([[x-.48,.55,z-.48],[x-.8,.08,z-.8],[x-.8,-.18,z-.8]],.055,copper,lightningGroup);
  earthObjects.push(bond);
- if(i===0||i===4||i===5||i===9)label('LIGHTNING MAST',[x,26.3,z]);
- reg(tip,'Lightning Protection Mast',0,'Air-termination mast intended to intercept direct lightning strokes and conduct lightning current through a dedicated down-conductor/bond into the station earthing system. This is separate from the surge arresters connected to the HV phases.');
+ label('LIGHTNING MAST '+(i+1),[x,mastH+6.3,z]);
+ reg(tip,'Lightning Protection Mast '+(i+1),0,'Tall lattice air-termination mast for direct lightning protection. The mast is bonded to the station earthing grid and is separate from the phase-connected surge arresters.');
 });
 // Main internal access road along the control building and transformer, plus transformer access spur.
 box([238,.10,7.0],[25,.07,61.5],M(0x4e5352,0,.98),civil);

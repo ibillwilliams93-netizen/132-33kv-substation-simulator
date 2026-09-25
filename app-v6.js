@@ -82,7 +82,7 @@ for(const pts of [
  [[63.8,1.0,5.5],[64.8,.2,6.5],[64.8,-.18,6.5]]
 ]){const e=tube(pts,.06,copper);earthObjects.push(e)}
 // Generic transformer neutral-earth representation: neutral bushing downlead to an accessible test link and grid.
-const neutralEarth=tube([[59.8,13.15,5.1],[66.5,6.0,10.5],[66.5,1.0,10.5],[66.5,-.18,10.5]],.055,copper);earthObjects.push(neutralEarth);
+const neutralEarth=tube([[59.8,13.15,5.1],[64.8,7.0,10.5],[66.5,1.0,10.5],[66.5,-.18,10.5]],.055,copper);earthObjects.push(neutralEarth);
 const neutralLink=box([.75,.9,.30],[66.5,1.25,10.5],M(0xb67b43,.55,.32));earthObjects.push(neutralLink);
 label('EARTH TEST LINK',[66.5,3.1,10.5]);
 // ============================================================================
@@ -342,8 +342,7 @@ for(const side of [-1,1]){
 // HV/LV terminal pads and corona/clamp hardware
 for(const z of [-5,0,5]){box([.9,.18,.55],[-7.2,16.55,z],al,tx);torus(.72,.06,[-7.2,16.35,z],al,tx,Math.PI/2)}
 for(const z of [-3.25,0,3.25]){box([.9,.16,.5],[7.2,14.15,z],al,tx);torus(.52,.05,[7.2,13.95,z],al,tx,Math.PI/2)}
-// Visible tank earth pads and bonds
-for(const z of [-5.2,5.2]){box([.5,.5,.12],[-8.55,1.7,z],copper,tx);tube([[47.45,2.25,z],[46.8,.65,z],[46.3,.15,z]],.07,copper)}
+// Tank earth pads are represented by the authoritative station-earthing system.
 // Marshalling kiosk face, handle and cable entries
 box([.08,2.45,1.8],[9.84,2.2,7.4],M(0xb8c0c4,.65,.28),tx);
 box([.08,.45,.08],[9.9,2.2,8.15],black,tx);
@@ -394,7 +393,7 @@ PH132.forEach(z=>{tube([[39,11.70,z],[42,12.0,z],[45.5,14.2,z],[48.8,17.0,z]],.0
 const cb33g=new THREE.Group();scene.add(cb33g);const cb33Contacts=[];[-3.2,0,3.2].forEach(z=>{pad(78,z,2.2,2);box([1.45,1.15,1.25],[78,.95,z],steel);ins(77.62,1.35,z,2.25,porc);ins(78.38,1.35,z,2.25,porc);const c33=new THREE.Group();c33.position.set(77.62,3.75,z);scene.add(c33);box([.76,.16,.28],[.38,0,0],al,c33);cb33Contacts.push(c33)});// 33 kV incomer receiving terminals
 [-3.2,0,3.2].forEach(z=>box([.28,.20,.34],[78.38,3.75,z],al));
 reg(cb33g,'33 kV Transformer Incomer Circuit Breaker',33,'Controls and protects the transformer connection to the 33 kV bus.');label('33 kV INCOMER CB',[78,7,-8]);
-const inst33=new THREE.Group();scene.add(inst33);[-3.2,0,3.2].forEach(z=>{pad(88,z,1.8,1.8);box([.9,.55,.9],[88,.7,z],steel);ins(88,1,z,2.5,porc)});reg(inst33,'33 kV CT / VT',33,'Provides current and voltage measurements for 33 kV protection and metering.');label('33 kV CT / VT',[88,6.5,-8]);
+const inst33=new THREE.Group();scene.add(inst33);[-3.2,0,3.2].forEach(z=>{pad(88,z,1.8,1.8);box([.9,.55,.9],[88,.7,z],steel);ins(88,1,z,2.5,porc)});reg(inst33,'33 kV CT / VT',33,'Instrument-transformer zone for protection and metering. CT primary current is in series with the 33 kV circuit; voltage-transformer measurement is connected as a shunt measurement and does not carry main load power.');label('33 kV CT / VT',[88,6.5,-8]);
 [-3.2,0,3.2].forEach((z,ph)=>{
   // One physical phase conductor per 33 kV transformer bushing.
   tube([[63.2,14,z],[68.5,8.0,z],[73.5,4.25,z],[77.62,3.75,z]],.07);
@@ -413,6 +412,7 @@ const inst33=new THREE.Group();scene.add(inst33);[-3.2,0,3.2].forEach(z=>{pad(88
   // Short flexible drop from the rigid bus end to the feeder take-off node.
   tube([[123,7.9,z],[123,7.2,z]],.075,al);
 });label('33 kV BUSBAR',[108,10.4,-7]);
+// ENGINEERING AUDIT 2026-09-25: authoritative 33 kV feeder implementation; do not overlay duplicate primary equipment.
 // V9 Phase 2: three complete, visually distinct 33 kV feeder bays.
 // Each bay has bus take-off, three-phase disconnector, breaker, CT, outgoing gantry and conductors.
 const feederGroups=[],feederBreakerVisuals=[],feederDisconnectors=[],feederContacts=[[],[],[]];
@@ -444,7 +444,7 @@ const feederGroups=[],feederBreakerVisuals=[],feederDisconnectors=[],feederConta
      // then route below grade in a neat protected conduit corridor to the feeder riser.
      const ductY=-0.42;
      const ductZ=laneZ;
-     const dropX=i===0?114:120;
+     const dropX=i===0?114:117;
      // Compact bus tee and cable sealing end located directly below the rigid busbar.
      tube([[dropX,7.9,busz],[dropX,5.15,busz]],.07,al,g);
      pad(dropX,busz,1.9,1.55);
@@ -608,7 +608,7 @@ const p33Up=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[63.2,14,z],[68.5,8,z],[
 const p33=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[78.38,3.75,z],[88,4,z],[94,4.4,z],[96,7.9,z],[108,7.9,z],[120,7.9,z],[123,7.9,z],[123,7.2,z]].map(v=>new THREE.Vector3(...v))));
 const flow33Up=[[],[],[]];
 const feederZ=[-28,0,28];
-const pFeeders=feederZ.map((fz,fi)=>phaseZ33.map((z,ph)=>{const lane=fz+[-4.2,0,4.2][ph],dropX=fi===0?114:120;const pts=fi===1?[[123,7.2,z],[124.5,7.2,z],[124.5,5.45,lane],[126.2,3.82,lane],[127.9,3.78,lane]]:[[dropX,7.9,z],[dropX,5.15,z],[dropX,1.9,z],[dropX,-.42,z],[dropX,-.42,lane],[122,-.42,lane],[126,-.42,lane],[126,1.9,lane],[126.2,3.82,lane],[127.9,3.78,lane]];pts.push([130.65,3.62,lane],[133.35,3.60,lane],[136.25,3.18,lane],[139.35,5.90,lane],[141,9.55,lane],[150,9.55,lane],[162,10.2,lane]);return new THREE.CatmullRomCurve3(pts.map(v=>new THREE.Vector3(...v)))}));
+const pFeeders=feederZ.map((fz,fi)=>phaseZ33.map((z,ph)=>{const lane=fz+[-4.2,0,4.2][ph],dropX=fi===0?114:117;const pts=fi===1?[[123,7.2,z],[124.5,7.2,z],[124.5,5.45,lane],[126.2,3.82,lane],[127.9,3.78,lane]]:[[dropX,7.9,z],[dropX,5.15,z],[dropX,1.9,z],[dropX,-.42,z],[dropX,-.42,lane],[122,-.42,lane],[126,-.42,lane],[126,1.9,lane],[126.2,3.82,lane],[127.9,3.78,lane]];pts.push([130.65,3.62,lane],[133.35,3.60,lane],[136.25,3.18,lane],[139.35,5.90,lane],[141,9.55,lane],[150,9.55,lane],[162,10.2,lane]);return new THREE.CatmullRomCurve3(pts.map(v=>new THREE.Vector3(...v)))}));
 for(let ph=0;ph<3;ph++){
  for(const arr of [flow132Line[ph],flow132AfterLineIso[ph],flow132AfterCB[ph],flow132Bus[ph]])for(let i=0;i<7;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/7;arr.push(o)}
  for(let i=0;i<8;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/8;flow33Up[ph].push(o)}

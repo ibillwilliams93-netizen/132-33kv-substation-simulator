@@ -300,7 +300,7 @@ PH132.forEach(z=>{
   pad(-69,z,1.45,1.45);
   ins(-69,.3,z,5.55,brown);
   box([.42,.14,.32],[-69,6.15,z],al);
-  tube([[-73,9.2,z],[-69,6.15,z]],.035);
+  tube([[-73,9.2,z],[-71.2,8.25,z],[-69,6.15,z]],.035,al);
   const eg=tube([[-69,.3,z],[-69,-.18,z]],.045,copper);earthObjects.push(eg);
 });
 reg(la,'132 kV Surge Arresters',132,'Three phase-to-earth surge arresters. They divert surge current to earth and are not in the normal load-current path.');
@@ -356,7 +356,7 @@ PH132.forEach(z=>{
  box([1.15,.70,1.15],[-42,.68,z],steel);
  ins(-42,1.0,z,5.75,brown);
  box([.46,.14,.32],[-42,T132.switchY+.10,z],al);
- tube([[-44.2,T132.switchY,z],[-42,T132.switchY+.10,z]],.030);
+ tube([[-44.2,T132.switchY,z],[-43.1,T132.switchY+.45,z],[-42,T132.switchY+.10,z]],.030,al);
 });
 reg(cvt,'132 kV CVT / VT',132,'Shunt-connected voltage measurement branch. Main load current does not pass through it.');
 label('CVT',[-42,10.1,-9]);
@@ -366,19 +366,24 @@ label('CVT',[-42,10.1,-9]);
 const breaker=new THREE.Group();scene.add(breaker);
 const cb132Contacts=[];
 PH132.forEach(z=>{
- pad(-33.5,z,3.6,2.0);
- box([2.8,.80,1.35],[-33.5,.62,z],steel);
- ins(T132.cbSrc,1.0,z,5.85,porc);
- ins(T132.cbDst,1.0,z,5.85,porc);
- box([.42,.16,.34],[T132.cbSrc,T132.switchY,z],al);
- box([.42,.16,.34],[T132.cbDst,T132.switchY,z],al);
+ pad(-33.5,z,4.2,2.5);
+ box([3.4,.95,1.65],[-33.5,.72,z],steel,breaker);
+ // Two terminal columns with a central interrupter/contact bridge.
+ ins(T132.cbSrc,1.15,z,5.65,porc,breaker);
+ ins(T132.cbDst,1.15,z,5.65,porc,breaker);
+ box([.48,.18,.38],[T132.cbSrc,T132.switchY,z],al,breaker);
+ box([.48,.18,.38],[T132.cbDst,T132.switchY,z],al,breaker);
  const contact=new THREE.Group();contact.position.set(T132.cbSrc,T132.switchY,z);scene.add(contact);
- box([2.60,.14,.24],[1.30,0,0],al,contact);
+ box([2.60,.18,.28],[1.30,0,0],al,contact);
  cb132Contacts.push(contact);
 });
-box([2.2,1.8,1.8],[-33.5,.9,9],steel);
+box([2.4,2.0,2.0],[-33.5,1.0,9],steel,breaker);
 reg(breaker,'132 kV Circuit Breaker',132,'Three-pole circuit breaker with distinct line and bus terminals. Opening/tripping removes the contact bridge.');
 label('132 kV CB',[-33.5,10.2,-9]);
+for(const z of PH132){
+ box([4.8,.025,.08],[-33.5,.055,z-1.65],M(0xe2c84a,.05,.45));
+ box([4.8,.025,.08],[-33.5,.055,z+1.65],M(0xe2c84a,.05,.45));
+}
 
 // 132_KV_BUS_ISO — directly between CB and elevated bus, no loose rings or floating hardware.
 const busDisc=make132Disconnector(-22,'132 kV Bus Disconnector');
@@ -406,6 +411,13 @@ for(const x of [-7,17,39]){
 // Exactly three elevated phase conductors, each landed on the top terminal of its white post insulators.
 PH132.forEach(z=>tube([[-7,13.20,z],[39,13.20,z]],.095));
 label('132 kV BUS',[17,16.2,-9]);
+const phaseTagColors=[0xd94b42,0xe7c447,0x4f7fd7];
+PH132.forEach((z,i)=>{
+ const m=M(phaseTagColors[i],.10,.42);
+ box([.70,.12,.48],[-61.5,T132.switchY+.28,z],m);
+ box([.70,.12,.48],[-35.6,T132.switchY+.28,z],m);
+ box([.70,.12,.48],[-24.5,T132.switchY+.28,z],m);
+});
 
 // 132_KV_TRANSFORMER_CONNECTION is completed immediately after transformer
 // construction so each jumper can land on the actual HV bushing terminal.
@@ -778,10 +790,10 @@ function particle(c){
 }
 const phaseZ132=[-6,0,6], phaseZ33=[-3.2,0,3.2];
 const phaseColorsFlow=[0xff3b30,0xffd21f,0x2677ff]; // R Y B
-const p132Line=phaseZ132.map((z,i)=>new THREE.CatmullRomCurve3([[TX,towerPhaseY[i]-3.4,z],[-116,21.5,z],[-100,19.0,z],[-85.0,17.5,z],[-83.8,14.6,z],[-79.2,11.6,z],[-73,9.2,z],[T132.lineIsoSrc,T132.switchY,z]].map(v=>new THREE.Vector3(...v))));
+const p132Line=phaseZ132.map((z,i)=>new THREE.CatmullRomCurve3([[TX,towerPhaseY[i]-3.4,z],[-116,21.5,z],[-100,19.0,z],[-85.0,17.5,z],[-83.8,14.6,z],[-79.2,12.6,z],[-73,9.2,z],[T132.lineIsoSrc,T132.switchY,z]].map(v=>new THREE.Vector3(...v))));
 const p132AfterLineIso=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[T132.lineIsoDst,T132.switchY,z],[T132.ct,T132.switchY,z],[T132.cbSrc,T132.switchY,z]].map(v=>new THREE.Vector3(...v))));
 const p132AfterCB=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[T132.cbDst,T132.switchY,z],[T132.busIsoSrc,T132.switchY,z]].map(v=>new THREE.Vector3(...v))));
-const p132Bus=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[T132.busIsoDst,T132.switchY,z],[T132.busRise,9.2,z],[-10,11.2,z],[-7,11.7,z],[17,11.7,z],[39,11.7,z],[42,12,z],[45.5,14.2,z],[48.8,17,z]].map(v=>new THREE.Vector3(...v))));
+const p132Bus=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[T132.busIsoDst,T132.switchY,z],[T132.busRise,9.2,z],[-10,11.2,z],[-7,13.20,z],[17,13.20,z],[39,13.20,z],[42,13.35,z],[45.5,14.8,z],[48.8,17,z]].map(v=>new THREE.Vector3(...v))));
 const flow132Line=[[],[],[]],flow132AfterLineIso=[[],[],[]],flow132AfterCB=[[],[],[]],flow132Bus=[[],[],[]];
 const p33Up=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[63.2,14,z],[68.5,8,z],[73.5,4.25,z],[76.75,4.62,z]].map(v=>new THREE.Vector3(...v))));
 const p33=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[79.25,4.62,z],[88,4,z],[94,4.4,z],[96,7.9,z],[108,7.9,z],[120,7.9,z],[123,7.9,z],[123,7.2,z]].map(v=>new THREE.Vector3(...v))));

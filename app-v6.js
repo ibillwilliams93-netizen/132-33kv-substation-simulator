@@ -583,51 +583,62 @@ const feederRelayLamps=[];
 // CONTROL BUILDING + PROTECTION PANELS + STATION DC SYSTEM
 const controlBuilding=new THREE.Group();scene.add(controlBuilding);
 box([25,7.5,17],[48,3.75,39],M(0xc8c5ba,0,.9),controlBuilding);
-box([26,.5,18],[48,7.7,39],M(0x4c575d,.45,.5),controlBuilding);
+// Roof intentionally removed/open for training cutaway visibility into the control room.
+// A low parapet defines the roof line without obscuring internal protection/DC equipment.
+for(const z of [30.5,47.5])box([26,.35,.35],[48,7.45,z],M(0x4c575d,.45,.5),controlBuilding);
+for(const x of [35.0,61.0])box([.35,.35,17],[x,7.45,39],M(0x4c575d,.45,.5),controlBuilding);
 // doors/windows and a visible equipment-room frontage
 box([2.8,5.2,.22],[42,2.65,30.42],M(0x38464c,.45,.35),controlBuilding);
 for(const x of [47,52,57])box([3.1,2.1,.18],[x,4.5,30.40],M(0x7aa1b0,.15,.22),controlBuilding);
 label('CONTROL & PROTECTION',[48,11.2,39]);
 
+// Visible internal floor and operating aisle for the open-roof training view.
+box([24.2,.10,16.2],[48,.08,39],M(0x9b9d98,.02,.92),controlBuilding);
+for(const x of [37,59])box([.08,.02,13.5],[x,.15,39],M(0xe1cf54,.02,.7),controlBuilding);
+label('OPEN CONTROL ROOM',[48,8.6,39]);
+
 // Relay/control panels: 132 kV line, transformer, 33 kV incomer and three feeder panels.
 const panelNames=['132 kV LINE','TRANSFORMER','33 kV INCOMER','FEEDER 1','FEEDER 2','FEEDER 3'];
 const controlPanels=[];
 panelNames.forEach((name,i)=>{
- const px=39.0+i*3.55, pz=37.0;
+ const px=38.5+i*3.75, pz=35.2;
  const pg=new THREE.Group();scene.add(pg);controlPanels.push(pg);
  box([3.0,5.4,1.05],[px,2.7,pz],M(0x59646a,.62,.32),pg);
  box([2.55,4.75,.08],[px,2.8,pz-.57],M(0x202c32,.22,.25),pg);
  // mimic relay/HMI windows and status lamps without implying a specific vendor.
  for(let r=0;r<3;r++)box([1.65,.52,.06],[px,4.35-r*.85,pz-.62],M(0x6f8d97,.08,.25),pg);
  for(let l=0;l<3;l++){const lamp=cyl(.11,.08,[px-.62+l*.62,1.35,pz-.64],M([0x2dcc66,0xe8c83d,0xd94b42][l],.1,.35),pg,12);lamp.rotation.x=Math.PI/2}
- label(name,[px,6.35,pz]);
+ label(name,[px,6.15,pz]);
  reg(pg,name+' Protection Panel',0,'Protection and control panel in the station control building. It receives instrument-transformer and status inputs and issues supervised DC control/trip commands to the associated circuit breaker.');
 });
 
 // Station DC: charger -> DC distribution -> battery bank -> protected trip/control circuits.
 const dcGroup=new THREE.Group();scene.add(dcGroup);
-box([3.2,5.2,1.25],[40.0,2.6,44.0],M(0x445159,.55,.32),dcGroup);
-box([2.65,1.15,.08],[40.0,4.05,43.33],M(0x1d2a30,.15,.2),dcGroup);
-label('BATTERY CHARGER',[40,6.4,44]);
-box([3.2,5.2,1.25],[44.2,2.6,44.0],M(0x445159,.55,.32),dcGroup);
-label('DC DISTRIBUTION',[44.2,6.4,44]);
+box([3.2,5.2,1.25],[39.5,2.6,43.2],M(0x445159,.55,.32),dcGroup);
+box([2.65,1.15,.08],[39.5,4.05,42.53],M(0x1d2a30,.15,.2),dcGroup);
+label('BATTERY CHARGER',[39.5,6.15,43.2]);
+box([3.2,5.2,1.25],[43.5,2.6,43.2],M(0x445159,.55,.32),dcGroup);
+label('DC DISTRIBUTION',[43.5,6.15,43.2]);
 
-// Two rows of generic station battery cells on insulated racks.
-for(const z of [47.0,49.0])for(let n=0;n<8;n++){
- const bx=38.5+n*1.45;
- box([1.05,1.35,.9],[bx,1.25,z],M(0x40494c,.18,.5),dcGroup);
- box([.16,.15,.16],[bx-.25,2.0,z],copper,dcGroup);box([.16,.15,.16],[bx+.25,2.0,z],copper,dcGroup);
- if(n<7)tube([[bx+.25,2.0,z],[bx+1.20,2.0,z]],.035,copper,dcGroup);
+// Indoor station battery bank: two compact rows on insulated steel racks inside the control building.
+for(const z of [44.6,46.0]){
+ box([22.0,.18,1.25],[48.0,.55,z],steel,dcGroup);
+ for(let n=0;n<12;n++){
+   const bx=38.4+n*1.75;
+   box([1.15,1.30,.90],[bx,1.32,z],M(0x40494c,.18,.5),dcGroup);
+   box([.16,.15,.16],[bx-.28,2.02,z],copper,dcGroup);box([.16,.15,.16],[bx+.28,2.02,z],copper,dcGroup);
+   if(n<11)tube([[bx+.28,2.02,z],[bx+1.47,2.02,z]],.035,copper,dcGroup);
+ }
 }
-label('STATION BATTERY BANK',[44,3.5,49]);
+label('STATION BATTERY BANK',[51,3.5,45.3]);
 
 // Separate low-voltage control cable trench and conceptual routes from panels/DC system to yard.
 // These do not represent primary 33/132 kV conductors.
 box([175,.22,2],[25,.11,26],black);
 const ctrlMat=M(0x334a58,.08,.4);
-tube([[44.2,.45,43.5],[44.2,.18,26],[132,.18,26],[132,.18,7]],.045,ctrlMat,dcGroup);
-tube([[44.2,.45,43.5],[44.2,.18,26],[-34,.18,26],[-34,.18,7]],.045,ctrlMat,dcGroup);
-tube([[44.2,.45,43.5],[44.2,.18,26],[78,.18,26],[78,.18,7]],.045,ctrlMat,dcGroup);
+tube([[43.5,.45,42.7],[44.2,.18,26],[132,.18,26],[132,.18,7]],.045,ctrlMat,dcGroup);
+tube([[43.5,.45,42.7],[44.2,.18,26],[-34,.18,26],[-34,.18,7]],.045,ctrlMat,dcGroup);
+tube([[43.5,.45,42.7],[44.2,.18,26],[78,.18,26],[78,.18,7]],.045,ctrlMat,dcGroup);
 reg(dcGroup,'Station DC Battery and Charger',0,'The station DC system supplies dependable protection, control and circuit-breaker trip energy even if station AC auxiliary supply is unavailable. The displayed routes are low-voltage control circuits, separate from primary power conductors.');
 // V7 realistic terminal hardware: clamps and phase marker discs at major connection points
 const phaseColors=[0xd94b42,0xe7c447,0x4f7fd7];

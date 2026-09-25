@@ -398,7 +398,14 @@ const feederGroups=[],feederBreakerVisuals=[],feederDisconnectors=[],feederConta
    // on its own horizontal corridor before turning into the feeder bay. This prevents
    // the three take-offs from bunching/crossing between phases.
    const laneZ=fz+[-4.2,0,4.2][j];
-   tube([[123,7.2,busz],[125.0,7.2,busz],[125.0,6.15,laneZ],[126.0,4.15,laneZ]],.065,al,g);
+   // Feeder routing topology:
+   // F2 (middle feeder) takes off directly from the middle/end of the bus.
+   // F1 and F3 leave from opposite side extensions of the bus before turning into their bays.
+   const takeoffX=i===1?123:(i===0?118:128);
+   const shoulderX=i===1?125:(i===0?120:130);
+   if(i===0) tube([[123,7.2,busz],[118,7.2,busz]],.075,al,g);
+   if(i===2) tube([[123,7.2,busz],[128,7.2,busz]],.075,al,g);
+   tube([[takeoffX,7.2,busz],[shoulderX,7.2,busz],[shoulderX,6.15,laneZ],[126.0,4.15,laneZ]],.065,al,g);
    // Dedicated take-off support keeps each phase physically separated and visibly seated.
    pad(126,laneZ,1.8,1.5);ins(126,.45,laneZ,3.55,porc,g);
    box([.50,.12,.30],[126,4.08,laneZ],al,g);
@@ -466,7 +473,7 @@ const p33Up=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[63.2,14,z],[68.5,8,z],[
 const p33=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[78.38,3.75,z],[88,4,z],[94,4.4,z],[96,7.9,z],[108,7.9,z],[120,7.9,z],[123,7.9,z],[123,7.2,z]].map(v=>new THREE.Vector3(...v))));
 const flow33Up=[[],[],[]];
 const feederZ=[-28,0,28];
-const pFeeders=feederZ.map(fz=>phaseZ33.map((z,ph)=>{const lane=fz+[-4.2,0,4.2][ph];return new THREE.CatmullRomCurve3([[123,7.2,z],[125,7.2,z],[125,6.15,lane],[126,4.15,lane],[132,3.55,lane],[136,3.35,lane],[139.6,7.0,lane],[141,9.55,lane],[150,9.55,lane],[162,10.2,lane]].map(v=>new THREE.Vector3(...v)))}));
+const pFeeders=feederZ.map((fz,fi)=>phaseZ33.map((z,ph)=>{const lane=fz+[-4.2,0,4.2][ph],takeoffX=fi===1?123:(fi===0?118:128),shoulderX=fi===1?125:(fi===0?120:130);return new THREE.CatmullRomCurve3([[takeoffX,7.2,z],[shoulderX,7.2,z],[shoulderX,6.15,lane],[126,4.15,lane],[132,3.55,lane],[136,3.35,lane],[139.6,7.0,lane],[141,9.55,lane],[150,9.55,lane],[162,10.2,lane]].map(v=>new THREE.Vector3(...v)))}));
 for(let ph=0;ph<3;ph++){
  for(const arr of [flow132Line[ph],flow132AfterLineIso[ph],flow132AfterCB[ph],flow132Bus[ph]])for(let i=0;i<7;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/7;arr.push(o)}
  for(let i=0;i<8;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/8;flow33Up[ph].push(o)}

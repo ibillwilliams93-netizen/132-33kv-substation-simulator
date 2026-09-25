@@ -199,8 +199,9 @@ PH132.forEach(z=>{
   // Dead-end strain string: grounded end at gantry, live end toward the incoming line.
   // The transmission conductor terminates at the live clamp; a separate jumper then
   // drops clear of the porcelain string into the line-bay terminal.
-  const string=new THREE.Group();string.position.set(-82,17.5,z);string.rotation.z=-Math.PI/2;scene.add(string);
+  const string=new THREE.Group();string.position.set(-82,17.5,z);string.rotation.z=Math.PI/2;scene.add(string);
   ins(0,0,0,3.0,brown,string);
+  // String extends from the grounded gantry crossarm toward the transmission-line side.
   const liveClamp=[-85.0,17.5,z];
   box([.55,.18,.34],liveClamp,al);
   // Incoming span ends at the clamp — it does not continue through the insulator.

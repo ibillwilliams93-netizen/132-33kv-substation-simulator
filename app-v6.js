@@ -112,36 +112,28 @@ const civil=new THREE.Group();scene.add(civil);
 // These are lightning masts (not the phase-to-earth surge arresters in the 132 kV bay).
 const lightningGroup=new THREE.Group();scene.add(lightningGroup);
 const mastLocations=[
- [-82,-43],[-20,-43],[45,-43],[105,-43],[135,-43],
- [-82,58],[-20,58],[45,58],[105,58],[135,58]
+ [-78,-40],[25,-40],[125,-40],
+ [-78,54],[25,54],[125,54]
 ];
 mastLocations.forEach(([x,z],i)=>{
- // Highly visible lattice-style lightning mast with a substantial base and air terminal.
- box([2.8,.55,2.8],[x,.275,z],conc,lightningGroup);
- const mastH=27;
- // four galvanized legs taper visually toward the top
- for(const [dx,dz] of [[-.48,-.48],[.48,-.48],[-.48,.48],[.48,.48]]){
-   beamBetween([x+dx,.55,z+dz],[x+dx*.18,mastH-1.8,z+dz*.18],.095,gal,lightningGroup);
- }
- // horizontal and diagonal lattice bracing
- for(let y=2;y<mastH-2;y+=2.4){
-   const t=1-y/mastH, r=.12+.48*t;
-   beamBetween([x-r,y,z-r],[x+r,y,z-r],.055,gal,lightningGroup);
-   beamBetween([x-r,y,z+r],[x+r,y,z+r],.055,gal,lightningGroup);
-   beamBetween([x-r,y,z-r],[x-r,y,z+r],.055,gal,lightningGroup);
-   beamBetween([x+r,y,z-r],[x+r,y,z+r],.055,gal,lightningGroup);
-   beamBetween([x-r,y,z-r],[x+r,y+2.2,z-r],.045,gal,lightningGroup);
-   beamBetween([x-r,y,z+r],[x+r,y+2.2,z+r],.045,gal,lightningGroup);
- }
- // prominent pointed air terminal above the mast.
- cyl(.075,.12,[x,mastH,z],al,lightningGroup,12);
- cyl(.018,.075,[x,mastH+2.5,z],al,lightningGroup,10);
- const tip=box([.18,.18,.18],[x,mastH+5.0,z],al,lightningGroup);
- // visible copper bond to the station earth grid
- const bond=tube([[x-.48,.55,z-.48],[x-.8,.08,z-.8],[x-.8,-.18,z-.8]],.055,copper,lightningGroup);
- earthObjects.push(bond);
- label('LIGHTNING MAST '+(i+1),[x,mastH+6.3,z]);
- reg(tip,'Lightning Protection Mast '+(i+1),0,'Tall lattice air-termination mast for direct lightning protection. The mast is bonded to the station earthing grid and is separate from the phase-connected surge arresters.');
+ // Large, clearly visible lightning protection mast located INSIDE the substation fence.
+ box([3.2,.60,3.2],[x,.30,z],conc,lightningGroup);
+ box([2.35,.28,2.35],[x,.68,z],steel,lightningGroup);
+ const mastH=30;
+ // Substantial tapered monopole silhouette so the mast remains visible from overview cameras.
+ cyl(.34,18,[x,9.7,z],gal,lightningGroup,18);
+ cyl(.25,10,[x,23.7,z],gal,lightningGroup,18);
+ // High-contrast collar and long pointed air terminal.
+ cyl(.48,.28,[x,18.6,z],M(0xe5c84c,.25,.38),lightningGroup,18);
+ cyl(.11,4.8,[x,31.1,z],al,lightningGroup,12);
+ const tip=cyl(.045,2.4,[x,34.7,z],M(0xd8dde0,.7,.22),lightningGroup,10);
+ // Copper down-conductor is deliberately visible at the base, then disappears into the earth grid.
+ tube([[x+.34,18.0,z],[x+.42,.65,z],[x+.80,.10,z],[x+.80,-.18,z]],.07,copper,lightningGroup);
+ // Identification board at eye level.
+ const plate=box([2.6,1.0,.10],[x,3.2,z+.48],M(0xe2c84a,.05,.45),lightningGroup);
+ reg(plate,'Lightning Protection Mast '+(i+1),0,'Dedicated air-termination mast for direct lightning protection. The mast is bonded to the station earthing grid and is separate from the phase-connected surge arresters.');
+ label('LIGHTNING MAST '+(i+1),[x,37.0,z]);
+ reg(tip,'Lightning Air Terminal '+(i+1),0,'The pointed air terminal forms the highest part of this lightning protection mast.');
 });
 // Main internal access road along the control building and transformer, plus transformer access spur.
 box([238,.10,7.0],[25,.07,61.5],M(0x4e5352,0,.98),civil);

@@ -43,13 +43,20 @@ const labelRegistry=new Map();function label(t,p){if(labelRegistry.has(t))return
 // V7 crushed-rock yard: vertex-level tone variation avoids the flat CAD look
 // Finished substation formation: extend the yard slab/ground to the enlarged perimeter.
 // The previous 270 x 130 plane stopped short of the new south fence and exposed the sky/background below the site.
-const gg=new THREE.PlaneGeometry(270,150,80,44);
+// Use a rectangular yard mesh whose LOCAL Y dimension becomes world Z after rotation.
+// PlaneGeometry is XY before rotation, so the second dimension must cover the full north/south site.
+const gg=new THREE.PlaneGeometry(250,126,80,44);
 const gc=[];for(let i=0;i<gg.attributes.position.count;i++){const n=.43+Math.random()*.09;gc.push(n,n*.99,n*.94)}
 gg.setAttribute('color',new THREE.Float32BufferAttribute(gc,3));
-const gmat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,metalness:0});
-const ground=new THREE.Mesh(gg,gmat);ground.rotation.x=-Math.PI/2;ground.position.z=8;ground.receiveShadow=true;scene.add(ground);
-// Perimeter formation/base thickness prevents a floating-paper appearance at oblique camera angles.
+const gmat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,metalness:0,side:THREE.DoubleSide});
+const ground=new THREE.Mesh(gg,gmat);
+ground.rotation.x=-Math.PI/2;
+ground.position.set(25,.015,8);
+ground.receiveShadow=true;scene.add(ground);
+// Matching solid formation under the exact fence footprint: x -100..150, z -55..71.
 box([250,.55,126],[25,-.30,8],M(0x777872,0,1));
+// Add a slightly oversized gravel skirt beneath the perimeter so no sky/background wedge can show at fence edges.
+box([258,.10,134],[25,-.04,8],M(0x7b7c76,0,1));
 box([250,.12,.5],[25,.06,71],conc);box([250,.12,.5],[25,.06,-55],conc);
 for(const x of [-96,146])box([.22,2.3,126],[x,1.15,8],gal);
 for(let z=-54;z<=70;z+=6){box([.16,2.3,.16],[-96,1.15,z],gal);box([.16,2.3,.16],[146,1.15,z],gal)}

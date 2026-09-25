@@ -571,10 +571,12 @@ const feederRelayLamps=[];
  box([2.5,2.45,1.45],[136.3,1.25,rz],M(0x303b41,.35,.32),rg);
  box([2.18,1.82,.08],[136.3,1.38,rz-.765],M(0x16242b,.15,.18),rg);
  label('F'+(i+1)+' PROTECTION',[136.3,3.25,rz]);
- // Low-voltage CT secondary/control route to cable trench, not a primary-power path.
+ // CT secondary/control cables drop vertically into the covered control-cable trench,
+ // run inside it, then rise only at the feeder protection kiosk.
  for(let ph=0;ph<3;ph++){
-   const z=fz+[-4.2,0,4.2][ph];
-   tube([[136.25,2.35,z],[137.25,1.45,z],[137.25,.18,z],[137.25,.18,rz],[136.3,.55,rz]],.025,M(0x334a58,.05,.35),rg);
+   const z=fz+[-4.2,0,4.2][ph], trenchY=-.12, trenchZ=26;
+   tube([[136.25,2.35,z],[136.25,.10,z],[136.25,trenchY,z],[136.25,trenchY,trenchZ]],.025,M(0x334a58,.05,.35),rg);
+   tube([[136.25,trenchY,trenchZ],[136.3,trenchY,trenchZ],[136.3,trenchY,rz],[136.3,.55,rz]],.025,M(0x334a58,.05,.35),rg);
  }
  const lamp=cyl(.22,.12,[136.3,2.05,rz-.83],M(0x28d17c,.2,.45),rg,18);
  lamp.rotation.x=Math.PI/2; feederRelayLamps.push(lamp);
@@ -639,20 +641,24 @@ for(const z of [44.5,46.0]){
 label('STATION BATTERY BANK',[53,3.35,45.2]);
 
 // Separate low-voltage control cable trench and conceptual routes from panels/DC system to yard.
-// These do not represent primary 33/132 kV conductors.
+// Cables are kept below the trench covers and rise only at destination equipment.
 box([175,.22,2],[25,.11,26],black);
-const ctrlMat=M(0x334a58,.08,.4);
-tube([[43.5,.45,42.7],[44.2,.18,26],[132,.18,26],[132,.18,7]],.045,ctrlMat,dcGroup);
-tube([[43.5,.45,42.7],[44.2,.18,26],[-34,.18,26],[-34,.18,7]],.045,ctrlMat,dcGroup);
-tube([[43.5,.45,42.7],[44.2,.18,26],[78,.18,26],[78,.18,7]],.045,ctrlMat,dcGroup);
+const ctrlMat=M(0x334a58,.08,.4), trenchY=-.12, trenchZ=26;
+// Control-room cable entry drops into the trench.
+tube([[43.5,.45,42.7],[43.5,.08,42.7],[43.5,trenchY,trenchZ]],.045,ctrlMat,dcGroup);
+// 132 kV breaker trip/control circuit.
+tube([[43.5,trenchY,trenchZ],[-34,trenchY,trenchZ],[-34,trenchY,7],[-34,.55,7]],.045,ctrlMat,dcGroup);
+// 33 kV incomer trip/control circuit.
+tube([[43.5,trenchY,trenchZ],[78,trenchY,trenchZ],[78,trenchY,7],[78,.55,7]],.045,ctrlMat,dcGroup);
+// Feeder protection/DC trunk stays in the same covered trench toward the 33 kV feeder kiosks.
+tube([[43.5,trenchY,trenchZ],[136.3,trenchY,trenchZ]],.045,ctrlMat,dcGroup);
 reg(dcGroup,'Station DC Battery and Charger',0,'The station DC system supplies dependable protection, control and circuit-breaker trip energy even if station AC auxiliary supply is unavailable. The displayed routes are low-voltage control circuits, separate from primary power conductors.');
 // V7 realistic terminal hardware: clamps and phase marker discs at major connection points
 const phaseColors=[0xd94b42,0xe7c447,0x4f7fd7];
 [[-69,9.5],[-56.1,5.75],[-49.9,5.75],[-40,5.55],[-15,6.2],[-5.1,5.75],[8,7.2],[39,7.2]].forEach(([x,y])=>{
  [-6,0,6].forEach((z,i)=>{const c=cyl(.16,.32,[x,y,z],gal);c.rotation.z=Math.PI/2;if(x===-69||x===39)cyl(.2,.08,[x,y+.35,z],M(phaseColors[i],.1,.45))})
 });
-// V7 cable trench covers
-for(let x=-70;x<125;x+=3)box([2.75,.12,2.2],[x,.07,27],M(0x6e7371,.05,.82));
+// Legacy duplicate trench covers removed; civil section at z=26 is authoritative.
 // training state
 const state={power:false,lineIso:true,cb132:true,busIso:true,cb33:true,feeders:[true,true,true],feederIso:[true,true,true],feederFault:[false,false,false],fault:false,cut:false,earth:false,training:false,trainingStep:0,trainingErrors:0,protPulse:0,faultZone:''};
 const flow33=[[],[],[]],flowFeeders=Array.from({length:3},()=>[[],[],[]]);

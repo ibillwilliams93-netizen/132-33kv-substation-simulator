@@ -317,9 +317,11 @@ function make132Disconnector(x,name){
    pad(x-1.5,z,1.25,1.25);pad(x+1.5,z,1.25,1.25);
    ins(x-1.5,.3,z,4.25,brown);ins(x+1.5,.3,z,4.25,brown);
    box([.34,.14,.30],[x-1.5,4.85,z],al);box([.34,.14,.30],[x+1.5,4.85,z],al);
-   const blade=new THREE.Group();blade.position.set(x-1.5,4.85,z);scene.add(blade);
+   const blade=new THREE.Group();blade.position.set(x-1.5,4.85,z);
    box([3.0,.12,.17],[1.5,0,0],al,blade);
-   g.add(blade);g.userData.blades.push(blade);
+   // Blade is already in the disconnector's world coordinate system; keep it in scene
+   // and track it from g.userData rather than re-parenting and shifting it.
+   scene.add(blade);g.userData.blades.push(blade);
  });
  reg(g,name,132,'Three-pole visible isolation device. Fixed conductors stop at its terminals; only the moving blade bridges the air gap.');
  return g
@@ -787,7 +789,7 @@ for(let ph=0;ph<3;ph++){
  for(let fd=0;fd<3;fd++)for(let i=0;i<16;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=(i/16+fd*.055)%1;flowFeeders[fd][ph].push(o)}
 }
 const live132Line=()=>state.power&&!state.fault;const live132AfterLineIso=()=>live132Line()&&state.lineIso;const live132AfterCB=()=>live132AfterLineIso()&&state.cb132;const e132=()=>live132AfterCB()&&state.busIso;const e33=()=>e132()&&state.cb33;const eFeeder=i=>e33()&&state.feeders[i]&&state.feederIso[i]&&!state.feederFault[i];
-function blades(g,closed){(g.userData.blades||[]).forEach(b=>b.rotation.z=closed?0:-.7)}
+function blades(g,closed){(g.userData.blades||[]).forEach(b=>{b.rotation.z=closed?0:1.05})}
 function breakerVisual(arr,closed,openUp=false){arr.forEach(o=>{o.rotation.z=closed?0:(openUp?1.05:-1.05);o.rotation.y=0;o.position.y=o.userData.baseY??o.position.y;if(o.userData.baseY===undefined)o.userData.baseY=o.position.y})}
 function setSldState(id,closed){const e=document.getElementById(id);if(!e)return;e.textContent=closed?'●':'○';e.classList.toggle('sldClosed',closed);e.classList.toggle('sldOpen',!closed)}
 function sldClass(id,closed){const e=document.getElementById(id);if(!e)return;e.classList.toggle('closed',closed);e.classList.toggle('open',!closed)}
@@ -871,7 +873,7 @@ function trainingAction(key,newValue){if(!state.training)return;const exp=curren
 function trainLog(t){const l=document.getElementById('trainLog');l.innerHTML+=t+'<br>';l.scrollTop=l.scrollHeight;updateTraining()}
 function updateTraining(){if(!state.training)return;const s=currentScenario();if(state.trainingStep<s.seq.length)document.getElementById('trainStep').textContent='Next operation: '+s.seq[state.trainingStep][2]}
 function resetTraining(){const s=currentScenario();state.trainingStep=0;state.trainingErrors=0;Object.assign(state,s.initial);state.feeders=[true,true,true];state.feederIso=[true,true,true];state.feederFault=[false,false,false];if(document.getElementById('scenario').value==='txon'){state.cb33=false;state.cb132=false;state.busIso=false;state.lineIso=false}document.getElementById('trainLog').innerHTML='Assessment started.<br>';document.getElementById('trainTask').textContent='Task: '+s.task;updateTraining();ui()}
-function toggle(id,key){document.getElementById(id).onclick=()=>{const nv=!state[key];if((key==='lineIso'||key==='busIso')&&state.power&&state.cb132&&state[key]){document.getElementById('eqName').textContent='SWITCHING WARNING';document.getElementById('eqInfo').textContent='Open the associated circuit breaker before opening a disconnector under load.';if(state.training){state.trainingErrors++;trainLog('✗ BLOCKED unsafe operation: '+key+' disconnector attempted under load')}return}trainingAction(key,nv);state[key]=nv;ui()}}
+function toggle(id,key){document.getElementById(id).onclick=()=>{const nv=!state[key];if((key==='lineIso'||key==='busIso')&&state.power&&state.cb132&&state[key]){document.getElementById('eqName').textContent='SWITCHING INTERLOCK';document.getElementById('eqInfo').textContent='BLOCKED: the 132 kV circuit breaker is CLOSED and the disconnector is carrying current. Open the 132 kV CB first, then operate the disconnector.';document.getElementById(id).classList.add('active');setTimeout(()=>document.getElementById(id).classList.remove('active'),700);if(state.training){state.trainingErrors++;trainLog('✗ BLOCKED unsafe operation: '+key+' disconnector attempted under load')}return}trainingAction(key,nv);state[key]=nv;ui()}}
 toggle('lineIso','lineIso');toggle('cb132','cb132');toggle('busIso','busIso');toggle('cb33','cb33');
 for(let i=0;i<3;i++)document.getElementById('f'+(i+1)).onclick=()=>{const nv=!state.feeders[i];trainingAction('f'+(i+1),nv);state.feeders[i]=nv;document.getElementById('eqName').textContent='33 kV FEEDER '+(i+1);document.getElementById('eqInfo').textContent=state.feeders[i]?'Feeder breaker closed. Feeder is available to energize from the 33 kV bus.':'Feeder breaker open. Power flow is isolated on this feeder only.';ui()};
 for(let i=0;i<3;i++){

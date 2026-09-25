@@ -486,6 +486,24 @@ const feederGroups=[],feederBreakerVisuals=[],feederDisconnectors=[],feederConta
  feederBreakerVisuals.push(g);
  label('33 kV FEEDER '+(i+1),[141,13.5,fz]);
 });
+// 33 kV feeder protection/control layer: CT secondary wiring is deliberately separate
+// from primary conductors and terminates in a dedicated relay/marshalling kiosk.
+const feederRelayLamps=[];
+[-28,0,28].forEach((fz,i)=>{
+ const rg=new THREE.Group();scene.add(rg);
+ const rz=fz+8.2;
+ box([2.5,2.45,1.45],[136.3,1.25,rz],M(0x303b41,.35,.32),rg);
+ box([2.18,1.82,.08],[136.3,1.38,rz-.765],M(0x16242b,.15,.18),rg);
+ label('F'+(i+1)+' PROTECTION',[136.3,3.25,rz]);
+ // Low-voltage CT secondary/control route to cable trench, not a primary-power path.
+ for(let ph=0;ph<3;ph++){
+   const z=fz+[-4.2,0,4.2][ph];
+   tube([[136.25,2.35,z],[137.25,1.45,z],[137.25,.18,z],[137.25,.18,rz],[136.3,.55,rz]],.025,M(0x334a58,.05,.35),rg);
+ }
+ const lamp=cyl(.22,.12,[136.3,2.05,rz-.83],M(0x28d17c,.2,.45),rg,18);
+ lamp.rotation.x=Math.PI/2; feederRelayLamps.push(lamp);
+ reg(rg,'Feeder '+(i+1)+' Protection Kiosk',0,'Receives CT secondary signals, applies feeder protection logic and sends a DC trip command to the Feeder '+(i+1)+' circuit breaker. This control wiring is electrically separate from the 33 kV primary circuit.');
+});
 // control building and trenches
 box([25,7.5,17],[48,3.75,39],M(0xc8c5ba,0,.9));box([26,.5,18],[48,7.7,39],M(0x4c575d,.45,.5));box([175,.22,2],[25,.11,26],black);label('CONTROL & PROTECTION',[48,11.2,39]);
 // V7 realistic terminal hardware: clamps and phase marker discs at major connection points
@@ -538,7 +556,7 @@ function syncGraphicalSLD(){
  for(let i=0;i<3;i++){sldClass('sf'+(i+1)+'cb',state.feeders[i]);sldClass('sf'+(i+1)+'iso',state.feederIso[i])}
 }
 function updateNextHighlight(){document.querySelectorAll('.nextOp').forEach(e=>e.classList.remove('nextOp'));if(!state.training)return;const s=currentScenario(),exp=s.seq[state.trainingStep];if(!exp)return;const map={cb33:'cb33',cb132:'cb132',busIso:'busIso',lineIso:'lineIso',f1:'f1',fd1:'fd1',ff1:'ff1'};const e=document.getElementById(map[exp[0]]);if(e)e.classList.add('nextOp')}
-function ui(){blades(lineDisc,state.lineIso);blades(busDisc,state.busIso);breakerVisual(cb132Contacts,state.cb132,true);breakerVisual(cb33Contacts,state.cb33,true);for(let i=0;i<3;i++)breakerVisual(feederContacts[i],state.feeders[i],true);syncGraphicalSLD();for(const [id,key,n] of [['lineIso','lineIso','Line ISO'],['cb132','cb132','132 CB'],['busIso','busIso','Bus ISO'],['cb33','cb33','33 CB']])document.getElementById(id).textContent=n+' '+(state[key]?'CLOSED':'OPEN');document.getElementById('power').classList.toggle('active',state.power);document.getElementById('fault').classList.toggle('active',state.fault);document.getElementById('cut').classList.toggle('active',state.cut);document.getElementById('earth').classList.toggle('active',state.earth);document.getElementById('sLine').textContent=state.power?'ENERGIZED':'DE-ENERGIZED';document.getElementById('sBus').textContent=e132()?'ENERGIZED':'DE-ENERGIZED';document.getElementById('sTx').textContent=e132()?'IN SERVICE':'OUT';document.getElementById('s33').textContent=e33()?'ENERGIZED':'DE-ENERGIZED';for(let i=0;i<3;i++){const b=document.getElementById('f'+(i+1));b.textContent='F'+(i+1)+' CB '+(state.feeders[i]?'CLOSED':'OPEN');b.classList.toggle('active',!state.feeders[i]);const d=document.getElementById('fd'+(i+1));d.textContent='F'+(i+1)+' ISO '+(state.feederIso[i]?'CLOSED':'OPEN');d.classList.toggle('active',!state.feederIso[i]);document.getElementById('ff'+(i+1)).classList.toggle('active',state.feederFault[i]);blades(feederDisconnectors[i],state.feederIso[i]);if(feederBreakerVisuals[i])feederBreakerVisuals[i].traverse(o=>{if(o.isMesh&&o.material&&o.material.emissive)o.material.emissiveIntensity=state.feeders[i]?0:.12})}document.getElementById('mode').textContent=state.training?'TRAINING • SWITCHING EXERCISE':state.fault?'PROTECTION • FAULT TRIPPED':state.cut?'TRANSFORMER • CUTAWAY':state.earth?'EARTHING • GRID VIEW':state.power?'POWER FLOW • LIVE':'EXPLORE • SYSTEM NORMAL'};document.querySelectorAll('.feederSld').forEach((n,i)=>{n.style.borderColor=state.feederFault[i]?'#ff7462':eFeeder(i)?'#70d58c':'#35566a';n.style.color=state.feederFault[i]?'#ff7462':eFeeder(i)?'#70d58c':'#eaf2f7'});updateNextHighlight()
+function ui(){blades(lineDisc,state.lineIso);blades(busDisc,state.busIso);breakerVisual(cb132Contacts,state.cb132,true);breakerVisual(cb33Contacts,state.cb33,true);for(let i=0;i<3;i++)breakerVisual(feederContacts[i],state.feeders[i],true);syncGraphicalSLD();for(const [id,key,n] of [['lineIso','lineIso','Line ISO'],['cb132','cb132','132 CB'],['busIso','busIso','Bus ISO'],['cb33','cb33','33 CB']])document.getElementById(id).textContent=n+' '+(state[key]?'CLOSED':'OPEN');document.getElementById('power').classList.toggle('active',state.power);document.getElementById('fault').classList.toggle('active',state.fault);document.getElementById('cut').classList.toggle('active',state.cut);document.getElementById('earth').classList.toggle('active',state.earth);document.getElementById('sLine').textContent=state.power?'ENERGIZED':'DE-ENERGIZED';document.getElementById('sBus').textContent=e132()?'ENERGIZED':'DE-ENERGIZED';document.getElementById('sTx').textContent=e132()?'IN SERVICE':'OUT';document.getElementById('s33').textContent=e33()?'ENERGIZED':'DE-ENERGIZED';for(let i=0;i<3;i++){const b=document.getElementById('f'+(i+1));b.textContent='F'+(i+1)+' CB '+(state.feeders[i]?'CLOSED':'OPEN');b.classList.toggle('active',!state.feeders[i]);const d=document.getElementById('fd'+(i+1));d.textContent='F'+(i+1)+' ISO '+(state.feederIso[i]?'CLOSED':'OPEN');d.classList.toggle('active',!state.feederIso[i]);document.getElementById('ff'+(i+1)).classList.toggle('active',state.feederFault[i]);blades(feederDisconnectors[i],state.feederIso[i]);if(feederBreakerVisuals[i])feederBreakerVisuals[i].traverse(o=>{if(o.isMesh&&o.material&&o.material.emissive)o.material.emissiveIntensity=state.feeders[i]?0:.12});if(feederRelayLamps[i]&&feederRelayLamps[i].material){feederRelayLamps[i].material.color.setHex(state.feederFault[i]?0xff3b30:0x28d17c);feederRelayLamps[i].material.emissive.setHex(state.feederFault[i]?0xff1600:0x062f1b);feederRelayLamps[i].material.emissiveIntensity=state.feederFault[i]?1.4:.18}}document.getElementById('mode').textContent=state.training?'TRAINING • SWITCHING EXERCISE':state.fault?'PROTECTION • FAULT TRIPPED':state.cut?'TRANSFORMER • CUTAWAY':state.earth?'EARTHING • GRID VIEW':state.power?'POWER FLOW • LIVE':'EXPLORE • SYSTEM NORMAL'};document.querySelectorAll('.feederSld').forEach((n,i)=>{n.style.borderColor=state.feederFault[i]?'#ff7462':eFeeder(i)?'#70d58c':'#35566a';n.style.color=state.feederFault[i]?'#ff7462':eFeeder(i)?'#70d58c':'#eaf2f7'});updateNextHighlight()
 const scenarios={
  txoff:{task:'Isolate the 132/33 kV transformer switching path for maintenance',initial:{power:true,cb33:true,cb132:true,busIso:true,lineIso:true},seq:[['cb33',false,'Open 33 kV transformer incomer CB'],['cb132',false,'Open 132 kV circuit breaker'],['busIso',false,'Open 132 kV bus disconnector'],['lineIso',false,'Open 132 kV line disconnector']]},
  txon:{task:'Return the transformer switching path to service',initial:{power:true,cb33:false,cb132:false,busIso:false,lineIso:false},seq:[['lineIso',true,'Close 132 kV line disconnector'],['busIso',true,'Close 132 kV bus disconnector'],['cb132',true,'Close 132 kV circuit breaker'],['cb33',true,'Close 33 kV transformer incomer CB']]},
@@ -559,10 +577,10 @@ for(let i=0;i<3;i++){
 }
 function runProtection(i){
  const ids=['pCT','pRelay','pDC','pTrip'];state.protPulse++;
- const token=state.protPulse;document.getElementById('protMsg').textContent='Feeder '+(i+1)+' fault detected — protection operating';
+ const token=state.protPulse;document.getElementById('protMsg').textContent='Feeder '+(i+1)+' abnormal current detected — selective protection operating';
  ids.forEach(x=>document.getElementById(x).classList.remove('live'));
- ids.forEach((id,k)=>setTimeout(()=>{if(token!==state.protPulse)return;document.getElementById(id).classList.add('live');document.getElementById('protMsg').textContent=['CT detects high fault current','Protection relay picks up and issues TRIP','Station DC supplies dependable trip energy','Trip coil opens Feeder '+(i+1)+' circuit breaker'][k]},k*420));
- setTimeout(()=>{if(token!==state.protPulse)return;document.getElementById('protMsg').textContent='Feeder '+(i+1)+' isolated • healthy feeders remain energized';ids.forEach(x=>document.getElementById(x).classList.remove('live'))},2200)
+ ids.forEach((id,k)=>setTimeout(()=>{if(token!==state.protPulse)return;document.getElementById(id).classList.add('live');document.getElementById('protMsg').textContent=['Feeder '+(i+1)+' CT secondary current rises','Feeder overcurrent / earth-fault relay picks up','Station DC supplies the breaker trip circuit','F'+(i+1)+' trip coil opens only Feeder '+(i+1)+' CB'][k]},k*420));
+ setTimeout(()=>{if(token!==state.protPulse)return;document.getElementById('protMsg').textContent='F'+(i+1)+' isolated • F'+((i+1)%3+1)+' and F'+((i+2)%3+1)+' remain available';ids.forEach(x=>document.getElementById(x).classList.remove('live'))},2200)
 }
 document.getElementById('power').onclick=()=>{state.power=!state.power;ui()};
 document.getElementById('fault').onclick=()=>{state.fault=!state.fault;if(state.fault)state.cb132=false;else state.cb132=true;ui()};

@@ -46,34 +46,34 @@ const gc=[];for(let i=0;i<gg.attributes.position.count;i++){const n=.43+Math.ran
 gg.setAttribute('color',new THREE.Float32BufferAttribute(gc,3));
 const gmat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,metalness:0});
 const ground=new THREE.Mesh(gg,gmat);ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
-box([250,.08,8],[25,.04,48],M(0x555b59,0,.96));box([250,.12,.5],[25,.06,53],conc);box([250,.12,.5],[25,.06,-55],conc);
-for(const x of [-96,146])box([.22,2.3,110],[x,1.15,0],gal);
-for(let z=-54;z<=54;z+=6){box([.16,2.3,.16],[-96,1.15,z],gal);box([.16,2.3,.16],[146,1.15,z],gal)}
+box([250,.12,.5],[25,.06,71],conc);box([250,.12,.5],[25,.06,-55],conc);
+for(const x of [-96,146])box([.22,2.3,126],[x,1.15,8],gal);
+for(let z=-54;z<=70;z+=6){box([.16,2.3,.16],[-96,1.15,z],gal);box([.16,2.3,.16],[146,1.15,z],gal)}
 // V7 perimeter security fence mesh, warning boards and yard lighting
 const fenceMat=new THREE.MeshStandardMaterial({color:0x7e8789,metalness:.72,roughness:.5,wireframe:true});
-for(const z of [-54,54]){const mesh=new THREE.Mesh(new THREE.PlaneGeometry(240,2.4,80,2),fenceMat);mesh.position.set(25,1.2,z);scene.add(mesh)}
-for(const x of [-94,144]){const mesh=new THREE.Mesh(new THREE.PlaneGeometry(108,2.4,36,2),fenceMat);mesh.rotation.y=Math.PI/2;mesh.position.set(x,1.2,0);scene.add(mesh)}
-for(const x of [-70,-25,20,65,110,135]){box([.18,8,.18],[x,4,50],gal);box([2.2,.12,.12],[x,8,50],gal);const lamp=box([1.1,.22,.5],[x+1,7.9,50],M(0xe5e1c7,.1,.3));lamp.rotation.z=-.18}
+for(const z of [-54,70]){const mesh=new THREE.Mesh(new THREE.PlaneGeometry(240,2.4,80,2),fenceMat);mesh.position.set(25,1.2,z);scene.add(mesh)}
+for(const x of [-94,144]){const mesh=new THREE.Mesh(new THREE.PlaneGeometry(124,2.4,42,2),fenceMat);mesh.rotation.y=Math.PI/2;mesh.position.set(x,1.2,8);scene.add(mesh)}
+for(const x of [-70,-25,20,65,110,135]){box([.18,8,.18],[x,4,66],gal);box([2.2,.12,.12],[x,8,66],gal);const lamp=box([1.1,.22,.5],[x+1,7.9,66],M(0xe5e1c7,.1,.3));lamp.rotation.z=-.18}
 
 // CIVIL / SITE REALISM — access roads, drainage, gates, safety zones and equipment identification.
 const civil=new THREE.Group();scene.add(civil);
 // Main internal access road along the control building and transformer, plus transformer access spur.
-box([238,.10,7.0],[25,.07,45.5],M(0x4e5352,0,.98),civil);
-box([8.0,.10,34.0],[56,.075,28.0],M(0x555a58,0,.98),civil);
-for(let x=-86;x<=136;x+=8)box([3.8,.025,.10],[x,.135,45.5],M(0xd8d1a8,0,.75),civil);
+box([238,.10,7.0],[25,.07,61.5],M(0x4e5352,0,.98),civil);
+box([8.0,.10,17.0],[56,.075,53.0],M(0x555a58,0,.98),civil);
+for(let x=-86;x<=136;x+=8)box([3.8,.025,.10],[x,.135,61.5],M(0xd8d1a8,0,.75),civil);
 // Concrete drainage channels kept at yard edges and clear of HV foundations.
-for(const z of [-50.5,50.5]){
+for(const z of [-50.5,67.0]){
  box([224,.18,.65],[25,.09,z],conc,civil);
  for(let x=-80;x<=130;x+=10)box([.08,.08,.55],[x,.20,z],steel,civil);
 }
 // Vehicle/pedestrian gate at east boundary, with swing leaves and warning placards.
-for(const z of [39,51])box([.34,3.2,.34],[144,1.6,z],gal,civil);
-for(const z of [42,48]){
+for(const z of [55,67])box([.34,3.2,.34],[144,1.6,z],gal,civil);
+for(const z of [58,64]){
  const leaf=new THREE.Group();leaf.position.set(144,0,z);scene.add(leaf);
- box([.16,2.6,5.6],[0,1.3,z<45?2.8:-2.8],gal,leaf);
+ box([.16,2.6,5.6],[0,1.3,z<61?2.8:-2.8],gal,leaf);
 }
-label('MAIN ACCESS GATE',[141,5.0,45]);
-const gateSign=box([.10,1.55,4.6],[143.72,2.35,45],M(0xe0c54f,.05,.55),civil);
+label('MAIN ACCESS GATE',[141,5.0,61]);
+const gateSign=box([.10,1.55,4.6],[143.72,2.35,61],M(0xe0c54f,.05,.55),civil);
 reg(gateSign,'High Voltage Warning',0,'Substation access is restricted. Entry, switching and work require the applicable authorization, permit, PPE and site safety procedures.');
 
 // Transformer safety/maintenance boundary and oil-containment identification.
@@ -100,9 +100,9 @@ idPlate('F1',[132,1.1,-35]);idPlate('F2',[132,1.1,-7]);idPlate('F3',[132,1.1,21]
 // Bollards protecting the control-building entrance and battery/control area from vehicles.
 for(const x of [39,42,45,48,51,54,57])cyl(.16,1.05,[x,.53,29.2],M(0xe0b83d,.12,.5),civil,14);
 // Fire/emergency assembly marker placed outside primary equipment corridors.
-const emergency=box([.16,2.6,.16],[33,1.3,47],gal,civil);
-box([2.0,1.2,.10],[33,2.65,47],M(0x3c8f59,.05,.5),civil);
-label('EMERGENCY / ASSEMBLY',[33,4.2,47]);
+const emergency=box([.16,2.6,.16],[33,1.3,56],gal,civil);
+box([2.0,1.2,.10],[33,2.65,56],M(0x3c8f59,.05,.5),civil);
+label('EMERGENCY / ASSEMBLY',[33,4.2,56]);
 // SUBSTATION EARTHING GRID — buried copper mesh spanning 132 kV yard, transformer and 33 kV yard.
 const earthGrid=new THREE.Group();scene.add(earthGrid);
 for(let x=-85;x<=135;x+=10){const e=box([.055,.045,98],[x,-.18,-2],copper,earthGrid);earthObjects.push(e)}

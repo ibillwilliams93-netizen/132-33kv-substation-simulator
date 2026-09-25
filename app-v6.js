@@ -30,7 +30,12 @@ const gal=M(0x9ca5a7,.72,.36),steel=M(0x59646a,.78,.38),porc=M(0xd7d0c1,.03,.24)
 const pick=[];const labels=[];const earthObjects=[];const cutObjects=[];
 function box(s,p,m=gal,parent=scene){const o=new THREE.Mesh(new THREE.BoxGeometry(...s),m);o.position.set(...p);o.castShadow=o.receiveShadow=true;parent.add(o);return o}
 function cyl(r,h,p,m=gal,parent=scene,seg=24){const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,seg),m);o.position.set(...p);o.castShadow=o.receiveShadow=true;parent.add(o);return o}
-function reg(g,name,kv,info){g.userData={name,kv,info};pick.push(g);return g}
+function reg(g,name,kv,info){
+ // Preserve existing equipment runtime data (moving blades, contacts, etc.).
+ // Replacing userData here previously deleted disconnector blade references,
+ // which is why the 132 kV Line ISO and Bus ISO state changed but never moved.
+ Object.assign(g.userData,{name,kv,info});pick.push(g);return g
+}
 function tube(points,r=.07,m=al,parent=scene){const c=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));const o=new THREE.Mesh(new THREE.TubeGeometry(c,Math.max(12,points.length*8),r,8,false),m);o.castShadow=true;parent.add(o);return o}
 function sagTube(a,b,sag=.7,r=.065,m=al,parent=scene){const pts=[];for(let i=0;i<=12;i++){const t=i/12;pts.push([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t-sag*4*t*(1-t),a[2]+(b[2]-a[2])*t])}return tube(pts,r,m,parent)}
 function pad(x,z,w=2.3,d=2.3){return box([w,.38,d],[x,.19,z],conc)}

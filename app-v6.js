@@ -381,7 +381,7 @@ const inst33=new THREE.Group();scene.add(inst33);[-3.2,0,3.2].forEach(z=>{pad(88
   tube([[96,7.9,z],[123,7.9,z]],.14,al);
   for(const x of [96,108,120]){
     box([.78,.16,.42],[x,7.92,z],al);
-    cyl(.18,.18,[x,8.12,z],M(phaseColors[ph],.08,.45));
+    cyl(.18,.18,[x,8.12,z],M([0xd94b42,0xe7c447,0x4f7fd7][ph],.08,.45));
   }
   // Short flexible drop from the rigid bus end to the feeder take-off node.
   tube([[123,7.9,z],[123,7.2,z]],.075,al);

@@ -442,35 +442,45 @@ const feederGroups=[],feederBreakerVisuals=[],feederDisconnectors=[],feederConta
      box([1.55,.14,1.25],[dropX,.07,busz],M(0x666d70,.65,.3),g);
      box([1.55,.14,1.25],[126,.07,ductZ],M(0x666d70,.65,.3),g);
    }
-   // Feeder disconnector uses the same separated phase lane.
+   // Authoritative feeder primary chain: cable/overhead terminal -> disconnector -> CB -> CT -> gantry.
    const z=laneZ;
-   pad(127,z,2.2,1.6);ins(126.25,.4,z,3.15,porc,g);ins(127.75,.4,z,3.15,porc,g);
-   const pivot=new THREE.Group();pivot.position.set(126.25,3.8,z);scene.add(pivot);
-   box([1.55,.11,.14],[.78,0,0],al,pivot);ds.userData.blades=(ds.userData.blades||[]);ds.userData.blades.push(pivot);
-   // feeder circuit breaker
-   pad(132,z,2.3,1.8);box([1.25,.8,1.05],[132,.78,z],steel,g);
-   ins(131.62,1.1,z,2.25,porc,g);ins(132.38,1.1,z,2.25,porc,g);
-   const fc=new THREE.Group();fc.position.set(131.62,3.55,z);scene.add(fc);box([.76,.15,.24],[.38,0,0],al,fc);feederContacts[i].push(fc);
-   box([.28,.18,.30],[132.38,3.55,z],al,g);
-   // CT after breaker
-   pad(136,z,1.55,1.55);box([.8,.45,.8],[136,.6,z],steel,g);ins(136,.8,z,2.25,porc,g);
-   torus(.48,.11,[136,3.25,z],brown,g,Math.PI/2);
-   // physically continuous phase conductor through bay
-   tube([[127.8,3.8,z],[131.62,3.55,z]],.065,al,g);
-   // Clean outgoing termination: conductor is seated on a dedicated 33 kV post insulator.
-   // No floating strain string and no conductor passes through steelwork.
-   tube([[132.38,3.55,z],[136,3.35,z],[139.6,7.0,z],[141.0,9.55,z]],.065,al,g);
-   // Dedicated phase post insulator mounted on the earthed outgoing crossarm.
+   // 3-pole disconnector: two post insulators and a hinged blade. Opening creates a true visible air gap.
+   pad(127,z,2.35,1.75);
+   ins(126.20,.45,z,3.25,porc,g); ins(127.90,.45,z,3.25,porc,g);
+   box([.38,.14,.32],[126.20,3.78,z],al,g); box([.38,.14,.32],[127.90,3.78,z],al,g);
+   const pivot=new THREE.Group();pivot.position.set(126.20,3.82,z);scene.add(pivot);
+   box([1.70,.10,.13],[.85,0,0],al,pivot);
+   ds.userData.blades=(ds.userData.blades||[]);ds.userData.blades.push(pivot);
+   // Fixed jumper starts only at the load-side disconnector terminal: no bypass around the blade.
+   tube([[127.90,3.78,z],[130.65,3.62,z]],.065,al,g);
+
+   // 33 kV feeder circuit breaker with separate source/load bushings and a visible moving contact.
+   pad(132,z,2.65,2.0); box([1.55,.90,1.22],[132,.82,z],steel,g);
+   box([1.10,.30,1.05],[132,1.36,z],M(0x59646a,.55,.35),g);
+   ins(130.65,1.25,z,2.28,porc,g); ins(133.35,1.25,z,2.28,porc,g);
+   box([.32,.16,.32],[130.65,3.60,z],al,g); box([.32,.16,.32],[133.35,3.60,z],al,g);
+   const fc=new THREE.Group();fc.position.set(130.65,3.60,z);scene.add(fc);
+   box([2.70,.14,.22],[1.35,0,0],al,fc); feederContacts[i].push(fc);
+
+   // CT is explicitly in series after the breaker. The primary conductor passes through its core.
+   pad(136.25,z,1.75,1.65); box([.92,.48,.92],[136.25,.62,z],steel,g);
+   ins(136.25,.88,z,2.12,porc,g);
+   torus(.54,.13,[136.25,3.18,z],brown,g,Math.PI/2);
+   tube([[133.35,3.60,z],[136.25,3.18,z],[139.35,5.90,z],[141.0,9.55,z]],.065,al,g);
+
+   // Earthed outgoing gantry supports each phase; conductor terminates on the clamp above the insulator.
    ins(141.0,7.85,z,1.55,porc,g);
-   box([.52,.12,.30],[141.0,9.48,z],al,g);
-   // Outgoing 33 kV line starts at the same terminal clamp and leaves the substation.
+   box([.58,.13,.34],[141.0,9.48,z],al,g);
    sagTube([141.0,9.55,z],[162,10.2,z],.42,.065,al,g);
  });
  g.userData.disconnector=ds;feederDisconnectors.push(ds);
- // outgoing steel gantry
+ // outgoing steel gantry with bracing and concrete feet
+ box([1.15,.35,1.15],[141,.18,fz-5],conc,g);box([1.15,.35,1.15],[141,.18,fz+5],conc,g);
  box([.35,8,.35],[141,4,fz-5],gal,g);box([.35,8,.35],[141,4,fz+5],gal,g);box([.4,.4,11],[141,7.75,fz],gal,g);
- // breaker mechanism cabinet
- box([2.2,1.8,1.6],[132,.9,fz+6.2],steel,g);
+ beamBetween([141,5.7,fz-5],[141,7.75,fz-3.6],.09,gal,g);beamBetween([141,5.7,fz+5],[141,7.75,fz+3.6],.09,gal,g);
+ // common operating/mechanism cabinets, positioned clear of primary conductors
+ box([2.2,1.8,1.6],[132,.9,fz+7.0],steel,g);
+ box([1.45,1.35,1.15],[127,.68,fz+7.0],steel,g);
  reg(g,'33 kV Feeder '+(i+1),33,'Complete outgoing feeder bay: bus take-off, disconnector, circuit breaker, current transformer and outgoing gantry. The circuit breaker interrupts load/fault current; the disconnector provides visible isolation after the breaker is open.');
  reg(ds,'33 kV Feeder '+(i+1)+' Disconnector',33,'Provides visible isolation for feeder '+(i+1)+'. Open the feeder circuit breaker before operating this disconnector.');
  feederBreakerVisuals.push(g);
@@ -506,7 +516,7 @@ const p33Up=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[63.2,14,z],[68.5,8,z],[
 const p33=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[78.38,3.75,z],[88,4,z],[94,4.4,z],[96,7.9,z],[108,7.9,z],[120,7.9,z],[123,7.9,z],[123,7.2,z]].map(v=>new THREE.Vector3(...v))));
 const flow33Up=[[],[],[]];
 const feederZ=[-28,0,28];
-const pFeeders=feederZ.map((fz,fi)=>phaseZ33.map((z,ph)=>{const lane=fz+[-4.2,0,4.2][ph],dropX=fi===0?114:120;const pts=fi===1?[[123,7.2,z],[124.5,7.2,z],[124.5,5.45,lane],[126,4.15,lane]]:[[dropX,7.9,z],[dropX,5.15,z],[dropX,1.9,z],[dropX,-.42,z],[dropX,-.42,lane],[122,-.42,lane],[126,-.42,lane],[126,1.9,lane],[126,4.15,lane]];pts.push([132,3.55,lane],[136,3.35,lane],[139.6,7.0,lane],[141,9.55,lane],[150,9.55,lane],[162,10.2,lane]);return new THREE.CatmullRomCurve3(pts.map(v=>new THREE.Vector3(...v)))}));
+const pFeeders=feederZ.map((fz,fi)=>phaseZ33.map((z,ph)=>{const lane=fz+[-4.2,0,4.2][ph],dropX=fi===0?114:120;const pts=fi===1?[[123,7.2,z],[124.5,7.2,z],[124.5,5.45,lane],[126.2,3.82,lane],[127.9,3.78,lane]]:[[dropX,7.9,z],[dropX,5.15,z],[dropX,1.9,z],[dropX,-.42,z],[dropX,-.42,lane],[122,-.42,lane],[126,-.42,lane],[126,1.9,lane],[126.2,3.82,lane],[127.9,3.78,lane]];pts.push([130.65,3.62,lane],[133.35,3.60,lane],[136.25,3.18,lane],[139.35,5.90,lane],[141,9.55,lane],[150,9.55,lane],[162,10.2,lane]);return new THREE.CatmullRomCurve3(pts.map(v=>new THREE.Vector3(...v)))}));
 for(let ph=0;ph<3;ph++){
  for(const arr of [flow132Line[ph],flow132AfterLineIso[ph],flow132AfterCB[ph],flow132Bus[ph]])for(let i=0;i<7;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/7;arr.push(o)}
  for(let i=0;i<8;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/8;flow33Up[ph].push(o)}

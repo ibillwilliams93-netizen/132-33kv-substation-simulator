@@ -524,15 +524,29 @@ reg(tx,'132/33 kV Power Transformer',132,'Transfers energy from the 132 kV syste
 // 132_KV_TRANSFORMER_CONNECTION — exactly three flexible jumpers, one per phase, terminated on actual HV bushing clamps.
 PH132.forEach(z=>{tube([[39,11.70,z],[42,12.0,z],[45.5,14.2,z],[48.8,17.0,z]],.085);torus(.30,.040,[39,11.70,z],al,scene,Math.PI/2)});
 // 33 kV yard
-const cb33g=new THREE.Group();scene.add(cb33g);const cb33Contacts=[];[-3.2,0,3.2].forEach(z=>{pad(78,z,2.2,2);box([1.45,1.15,1.25],[78,.95,z],steel);ins(77.62,1.35,z,2.25,porc);ins(78.38,1.35,z,2.25,porc);const c33=new THREE.Group();c33.position.set(77.62,3.75,z);scene.add(c33);box([.76,.16,.28],[.38,0,0],al,c33);cb33Contacts.push(c33)});// 33 kV incomer receiving terminals
-[-3.2,0,3.2].forEach(z=>box([.28,.20,.34],[78.38,3.75,z],al));
-reg(cb33g,'33 kV Transformer Incomer Circuit Breaker',33,'Controls and protects the transformer connection to the 33 kV bus.');label('33 kV INCOMER CB',[78,7,-8]);
+const cb33g=new THREE.Group();scene.add(cb33g);const cb33Contacts=[];
+[-3.2,0,3.2].forEach(z=>{
+ // Full-size 33 kV outdoor breaker pole, proportioned consistently with the feeder breakers.
+ pad(78,z,3.0,2.5);
+ box([2.05,1.55,1.65],[78,1.05,z],steel,cb33g);
+ box([1.55,.38,1.35],[78,1.95,z],M(0x59646a,.55,.35),cb33g);
+ // Taller source/load bushings provide a clear breaker silhouette and visible interruption point.
+ ins(76.75,1.45,z,3.10,porc,cb33g);
+ ins(79.25,1.45,z,3.10,porc,cb33g);
+ box([.38,.18,.36],[76.75,4.62,z],al,cb33g);
+ box([.38,.18,.36],[79.25,4.62,z],al,cb33g);
+ const c33=new THREE.Group();c33.position.set(76.75,4.62,z);scene.add(c33);
+ box([2.50,.18,.30],[1.25,0,0],al,c33);cb33Contacts.push(c33);
+});
+// 33 kV incomer receiving terminals
+[-3.2,0,3.2].forEach(z=>box([.34,.22,.38],[79.25,4.62,z],al));
+reg(cb33g,'33 kV Transformer Incomer Circuit Breaker',33,'Controls and protects the transformer connection to the 33 kV bus.');label('33 kV INCOMER CB',[78,8.2,-8]);
 const inst33=new THREE.Group();scene.add(inst33);[-3.2,0,3.2].forEach(z=>{pad(88,z,1.8,1.8);box([.9,.55,.9],[88,.7,z],steel);ins(88,1,z,2.5,porc)});reg(inst33,'33 kV CT / VT',33,'Instrument-transformer zone for protection and metering. CT primary current is in series with the 33 kV circuit; voltage-transformer measurement is connected as a shunt measurement and does not carry main load power.');label('33 kV CT / VT',[88,6.5,-8]);
 [-3.2,0,3.2].forEach((z,ph)=>{
   // One physical phase conductor per 33 kV transformer bushing.
-  tube([[63.2,14,z],[68.5,8.0,z],[73.5,4.25,z],[77.62,3.75,z]],.07);
+  tube([[63.2,14,z],[68.5,8.0,z],[73.5,4.25,z],[76.75,4.62,z]],.07);
   // Bus-side conductor starts at the opposite CB bushing; no fixed conductor bridges the breaker.
-  tube([[78.38,3.75,z],[88,4.0,z],[94,4.4,z]],.07);
+  tube([[79.25,4.62,z],[88,4.0,z],[94,4.4,z]],.07);
   // Flexible riser into the bus terminal clamp.
   tube([[94,4.4,z],[96,7.9,z]],.075);
   // REALISTIC 33 kV RIGID BUS: one straight aluminium tube per phase, supported on
@@ -761,8 +775,8 @@ const p132AfterLineIso=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[T132.lineIs
 const p132AfterCB=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[T132.cbDst,4.85,z],[T132.busIsoSrc,4.85,z]].map(v=>new THREE.Vector3(...v))));
 const p132Bus=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[T132.busIsoDst,4.85,z],[T132.busRise,7.2,z],[-10,10.5,z],[-7,11.7,z],[17,11.7,z],[39,11.7,z],[42,12,z],[45.5,14.2,z],[48.8,17,z]].map(v=>new THREE.Vector3(...v))));
 const flow132Line=[[],[],[]],flow132AfterLineIso=[[],[],[]],flow132AfterCB=[[],[],[]],flow132Bus=[[],[],[]];
-const p33Up=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[63.2,14,z],[68.5,8,z],[73.5,4.25,z],[77.62,3.75,z]].map(v=>new THREE.Vector3(...v))));
-const p33=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[78.38,3.75,z],[88,4,z],[94,4.4,z],[96,7.9,z],[108,7.9,z],[120,7.9,z],[123,7.9,z],[123,7.2,z]].map(v=>new THREE.Vector3(...v))));
+const p33Up=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[63.2,14,z],[68.5,8,z],[73.5,4.25,z],[76.75,4.62,z]].map(v=>new THREE.Vector3(...v))));
+const p33=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[79.25,4.62,z],[88,4,z],[94,4.4,z],[96,7.9,z],[108,7.9,z],[120,7.9,z],[123,7.9,z],[123,7.2,z]].map(v=>new THREE.Vector3(...v))));
 const flow33Up=[[],[],[]];
 const feederZ=[-28,0,28];
 const pFeeders=feederZ.map((fz,fi)=>phaseZ33.map((z,ph)=>{const lane=fz+[-4.2,0,4.2][ph],dropX=fi===0?114:117;const pts=fi===1?[[123,7.2,z],[124.5,7.2,z],[124.5,5.45,lane],[126.2,3.82,lane],[127.9,3.78,lane]]:[[dropX,7.9,z],[dropX,5.15,z],[dropX,1.9,z],[dropX,-.42,z],[dropX,-.42,lane],[122,-.42,lane],[126,-.42,lane],[126,1.9,lane],[126.2,3.82,lane],[127.9,3.78,lane]];pts.push([130.65,3.62,lane],[133.35,3.60,lane],[136.25,3.18,lane],[139.35,5.90,lane],[141,9.55,lane],[150,9.55,lane],[162,10.2,lane]);return new THREE.CatmullRomCurve3(pts.map(v=>new THREE.Vector3(...v)))}));

@@ -54,9 +54,37 @@ const fenceMat=new THREE.MeshStandardMaterial({color:0x7e8789,metalness:.72,roug
 for(const z of [-54,54]){const mesh=new THREE.Mesh(new THREE.PlaneGeometry(240,2.4,80,2),fenceMat);mesh.position.set(25,1.2,z);scene.add(mesh)}
 for(const x of [-94,144]){const mesh=new THREE.Mesh(new THREE.PlaneGeometry(108,2.4,36,2),fenceMat);mesh.rotation.y=Math.PI/2;mesh.position.set(x,1.2,0);scene.add(mesh)}
 for(const x of [-70,-25,20,65,110,135]){box([.18,8,.18],[x,4,50],gal);box([2.2,.12,.12],[x,8,50],gal);const lamp=box([1.1,.22,.5],[x+1,7.9,50],M(0xe5e1c7,.1,.3));lamp.rotation.z=-.18}
-// buried earthing
-for(let x=-85;x<135;x+=10){const e=box([.04,.035,98],[x,-.08,-2],copper);earthObjects.push(e)}
-for(let z=-48;z<48;z+=10){const e=box([220,.035,.04],[25,-.08,z],copper);earthObjects.push(e)}
+// SUBSTATION EARTHING GRID — buried copper mesh spanning 132 kV yard, transformer and 33 kV yard.
+const earthGrid=new THREE.Group();scene.add(earthGrid);
+for(let x=-85;x<=135;x+=10){const e=box([.055,.045,98],[x,-.18,-2],copper,earthGrid);earthObjects.push(e)}
+for(let z=-48;z<=48;z+=10){const e=box([220,.045,.055],[25,-.18,z],copper,earthGrid);earthObjects.push(e)}
+// Perimeter ring and vertical earth electrodes at representative grid corners/test locations.
+for(const pts of [
+ [[-85,-.18,-48],[135,-.18,-48]],[[135,-.18,-48],[135,-.18,46]],
+ [[135,-.18,46],[-85,-.18,46]],[[-85,-.18,46],[-85,-.18,-48]]
+]){const e=tube(pts,.045,copper,earthGrid);earthObjects.push(e)}
+for(const [x,z] of [[-85,-48],[-85,46],[135,-48],[135,46],[-45,-38],[55,-18],[105,38]]){
+ const rod=cyl(.055,3.0,[x,-1.5,z],copper,earthGrid,12);earthObjects.push(rod);
+ const pit=box([1.7,.12,1.7],[x,.06,z],M(0x777a74,.05,.82));earthObjects.push(pit);
+}
+// Equipment bonding risers. These are protective-earth bonds, not primary conductors.
+for(const [x,z,y] of [
+ [-73,-9,1.0],[-73,9,1.0],[-60.5,-6,.7],[-60.5,6,.7],[-48,-6,.7],[-48,6,.7],
+ [-34,-6,.7],[-34,6,.7],[-22,-6,.7],[-22,6,.7],[-7,-9,.7],[39,9,.7],
+ [78,-5,.7],[96,-5,.7],[108,5,.7],[120,-5,.7],[141,-33,.7],[141,-23,.7],
+ [141,-5,.7],[141,5,.7],[141,23,.7],[141,33,.7]
+]){
+ const bond=tube([[x,y,z],[x,.18,z],[x,-.18,z]],.04,copper);earthObjects.push(bond);
+}
+// Transformer tank has two independent visible bonds to the common station grid.
+for(const pts of [
+ [[48.2,1.0,-5.5],[47.2,.2,-6.5],[47.2,-.18,-6.5]],
+ [[63.8,1.0,5.5],[64.8,.2,6.5],[64.8,-.18,6.5]]
+]){const e=tube(pts,.06,copper);earthObjects.push(e)}
+// Generic transformer neutral-earth representation: neutral bushing downlead to an accessible test link and grid.
+const neutralEarth=tube([[59.8,13.15,5.1],[66.5,6.0,10.5],[66.5,1.0,10.5],[66.5,-.18,10.5]],.055,copper);earthObjects.push(neutralEarth);
+const neutralLink=box([.75,.9,.30],[66.5,1.25,10.5],M(0xb67b43,.55,.32));earthObjects.push(neutralLink);
+label('EARTH TEST LINK',[66.5,3.1,10.5]);
 // ============================================================================
 // 132_KV_SWITCHYARD — AUTHORITATIVE IMPLEMENTATION
 // Complete rebuild per engineering acceptance brief. No legacy 132 kV geometry
@@ -134,7 +162,7 @@ PH132.forEach(z=>{
   ins(-69,.3,z,4.1,brown);
   box([.38,.12,.28],[-69,4.7,z],al);
   tube([[-73,7,z],[-69,4.7,z]],.035);
-  const eg=tube([[-69,.3,z],[-69,-.08,z]],.035,copper);earthObjects.push(eg);
+  const eg=tube([[-69,.3,z],[-69,-.18,z]],.045,copper);earthObjects.push(eg);
 });
 reg(la,'132 kV Surge Arresters',132,'Three phase-to-earth surge arresters. They divert surge current to earth and are not in the normal load-current path.');
 label('LA',[-69,7.0,-9]);
@@ -328,8 +356,7 @@ box([3.4,5.2,3.0],[-6.9,4.2,7.2],txmat,tx);box([1.8,2.2,.25],[-6.9,4.2,8.82],ste
 label('OLTC COMPARTMENT',[49,7.5,9.5]);
 // Neutral bushing and visible tank-to-earth bonds
 ins(3.8,9.9,5.1,3.0,porc,tx);cyl(.18,.5,[3.8,13.15,5.1],copper,tx);
-const txEarth1=tube([[48.2,1.0,-5.5],[47.2,.25,-6.5],[47.2,-.05,-6.5]],.055,copper);earthObjects.push(txEarth1);
-const txEarth2=tube([[63.8,1.0,5.5],[64.8,.25,6.5],[64.8,-.05,6.5]],.055,copper);earthObjects.push(txEarth2);
+// Transformer tank earth bonds are created by the authoritative station-earthing section.
 // Oil level indicator on conservator and winding/oil temperature gauges
 cyl(.48,.16,[4.55,14.1,0],M(0xe7e1d0,.05,.25),tx);cyl(.32,.12,[7.9,8.2,5.9],M(0xe7e1d0,.05,.25),tx);cyl(.32,.12,[7.2,7.3,5.9],M(0xe7e1d0,.05,.25),tx);
 // Pressure relief device with discharge hood
@@ -604,7 +631,8 @@ document.getElementById('applyFault').onclick=()=>{const z=document.getElementBy
 document.getElementById('resetFaults').onclick=()=>{state.fault=false;state.faultZone='';state.feederFault=[false,false,false];state.cb132=true;state.cb33=true;state.feeders=[true,true,true];document.getElementById('faultZone').value='';document.getElementById('eqName').textContent='PROTECTION RESET';document.getElementById('eqInfo').textContent='Fault flags cleared and breakers restored for simulator training. In field operation, protection reset and re-energization require the applicable investigation, authorization and switching procedure.';ui()};
 
 document.getElementById('cut').onclick=()=>{state.cut=!state.cut;tank.material.transparent=true;tank.material.opacity=state.cut?.14:1;internals.visible=state.cut;[hvTag,fluxTag,lvTag].forEach(s=>s.visible=state.cut);document.getElementById('eqName').textContent=state.cut?'TRANSFORMER CUTAWAY — ENERGY TRANSFER':'132/33 kV POWER TRANSFORMER';document.getElementById('eqInfo').innerHTML=state.cut?'<b>132 kV AC → magnetic flux → induced 33 kV AC</b><br>The HV and LV windings are electrically isolated. Alternating current in the HV winding establishes alternating magnetic flux in the laminated core. That changing flux links the LV winding and induces voltage by electromagnetic induction. The animation intentionally does not show electricity jumping between windings.':'Transformer cutaway closed.';ui()};
-document.getElementById('earth').onclick=()=>{state.earth=!state.earth;earthObjects.forEach(o=>{o.position.y=state.earth?.12:-.08;o.material=state.earth?M(0x2dcc66,.15,.35):copper});ui()};
+earthObjects.forEach(o=>o.visible=false);
+document.getElementById('earth').onclick=()=>{state.earth=!state.earth;earthObjects.forEach(o=>{if(!o.userData.earthBaseY)o.userData.earthBaseY=o.position.y;o.visible=state.earth||o.userData.earthAlwaysVisible===true;if(o.material){o.material=state.earth?M(0x2dcc66,.15,.35):copper}});document.getElementById('eqName').textContent=state.earth?'SUBSTATION EARTHING SYSTEM':'EARTHING VIEW OFF';document.getElementById('eqInfo').textContent=state.earth?'Green conductors show the buried station earth grid, equipment bonds, transformer tank bonds, surge-arrester earth paths, earth electrodes and transformer neutral-earth/test-link representation. The grid equalizes potential and provides a low-impedance fault-current path so protection can operate.':'Buried earth grid hidden. Protective bonds remain part of the simulated installation.';ui()};
 function view(p,t){camera.position.set(...p);controls.target.set(...t);controls.update()}
 document.getElementById('overview').onclick=()=>view([105,68,118],[25,5,0]);document.getElementById('incoming').onclick=()=>view([-48,25,46],[-48,5,0]);document.getElementById('transformer').onclick=()=>view([83,29,35],[56,8,0]);document.getElementById('yard33').onclick=()=>view([138,31,65],[110,4,0]);document.getElementById('top').onclick=()=>view([25,175,.1],[25,0,0]);
 document.getElementById('sldView').onclick=()=>{document.getElementById('left').classList.remove('control-hidden');document.getElementById('eqName').textContent='LIVE SINGLE LINE DIAGRAM';document.getElementById('eqInfo').textContent='Click a device in the Live SLD to fly to the corresponding 3D equipment.'};

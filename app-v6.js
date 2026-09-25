@@ -184,8 +184,7 @@ towerPhaseZ.forEach((z,i)=>{
  }
  const str=new THREE.Group();str.position.set(TX,y,z);scene.add(str);
  ins(0,-3.4,0,3.4,brown,str);
- // Each phase span runs from the actual tower insulator bottom to its gantry termination.
- sagTube([TX,y-3.4,z],[-84.9,20.0,z],1.35,.095,al);
+ // Incoming phase span is terminated at the gantry live clamp in the authoritative gantry block below.
 });
 // Tower footing blocks.
 for(const sx of [-1,1])for(const sz of [-1,1])box([2.0,.55,2.0],[TX+sx*5,.275,TZ+sz*4],conc);
@@ -197,10 +196,17 @@ const gantry132=new THREE.Group();scene.add(gantry132);
 for(const z of [-9,9])box([.55,17.5,.55],[-82,8.75,z],gal,gantry132);
 box([.55,.55,19],[-82,17.5,0],gal,gantry132);
 PH132.forEach(z=>{
-  // horizontal strain string keeps live termination away from grounded crossarm
-  const string=new THREE.Group();string.position.set(-82,17.5,z);string.rotation.z=Math.PI/2;scene.add(string);
+  // Dead-end strain string: grounded end at gantry, live end toward the incoming line.
+  // The transmission conductor terminates at the live clamp; a separate jumper then
+  // drops clear of the porcelain string into the line-bay terminal.
+  const string=new THREE.Group();string.position.set(-82,17.5,z);string.rotation.z=-Math.PI/2;scene.add(string);
   ins(0,0,0,3.0,brown,string);
-  tube([[-84.9,20.0,z],[-79.2,12.0,z],[-73.0,7.0,z]],.078);
+  const liveClamp=[-85.0,17.5,z];
+  box([.55,.18,.34],liveClamp,al);
+  // Incoming span ends at the clamp — it does not continue through the insulator.
+  sagTube([TX,towerPhaseY[PH132.indexOf(z)]-3.4,z],liveClamp,1.35,.095,al);
+  // Flexible jumper loops below/away from the string and lands on the line-bay terminal.
+  tube([liveClamp,[-83.8,14.6,z],[-79.2,11.6,z],[-73.0,7.0,z]],.078,al);
 });
 label('132 kV INCOMING',[-88,23.0,-10]);
 
@@ -671,7 +677,7 @@ function particle(c){
 }
 const phaseZ132=[-6,0,6], phaseZ33=[-3.2,0,3.2];
 const phaseColorsFlow=[0xff3b30,0xffd21f,0x2677ff]; // R Y B
-const p132Line=phaseZ132.map((z,i)=>new THREE.CatmullRomCurve3([[TX,towerPhaseY[i]-3.4,z],[-116,21.5,z],[-100,19.8,z],[-84.9,20,z],[-79.2,12,z],[-73,7,z],[T132.lineIsoSrc,4.85,z]].map(v=>new THREE.Vector3(...v))));
+const p132Line=phaseZ132.map((z,i)=>new THREE.CatmullRomCurve3([[TX,towerPhaseY[i]-3.4,z],[-116,21.5,z],[-100,19.0,z],[-85.0,17.5,z],[-83.8,14.6,z],[-79.2,11.6,z],[-73,7,z],[T132.lineIsoSrc,4.85,z]].map(v=>new THREE.Vector3(...v))));
 const p132AfterLineIso=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[T132.lineIsoDst,4.85,z],[T132.ct,4.85,z],[T132.cbSrc,4.85,z]].map(v=>new THREE.Vector3(...v))));
 const p132AfterCB=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[T132.cbDst,4.85,z],[T132.busIsoSrc,4.85,z]].map(v=>new THREE.Vector3(...v))));
 const p132Bus=phaseZ132.map(z=>new THREE.CatmullRomCurve3([[T132.busIsoDst,4.85,z],[T132.busRise,7.2,z],[-10,10.5,z],[-7,11.7,z],[17,11.7,z],[39,11.7,z],[42,12,z],[45.5,14.2,z],[48.8,17,z]].map(v=>new THREE.Vector3(...v))));

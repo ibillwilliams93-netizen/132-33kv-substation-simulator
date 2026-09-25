@@ -107,6 +107,27 @@ for(const x of [-70,-25,20,65,110,135]){box([.18,8,.18],[x,4,66],gal);box([2.2,.
 
 // CIVIL / SITE REALISM — access roads, drainage, gates, safety zones and equipment identification.
 const civil=new THREE.Group();scene.add(civil);
+
+// LIGHTNING PROTECTION — dedicated air-termination masts around the compound.
+// These are lightning masts (not the phase-to-earth surge arresters in the 132 kV bay).
+const lightningGroup=new THREE.Group();scene.add(lightningGroup);
+const mastLocations=[
+ [-82,-43],[-20,-43],[45,-43],[105,-43],[135,-43],
+ [-82,58],[-20,58],[45,58],[105,58],[135,58]
+];
+mastLocations.forEach(([x,z],i)=>{
+ // concrete footing + tapered-looking galvanized mast
+ box([1.8,.42,1.8],[x,.21,z],conc,lightningGroup);
+ cyl(.16,.24,[x,7.0,z],gal,lightningGroup,14);
+ cyl(.095,.16,[x,16.0,z],gal,lightningGroup,14);
+ // pointed air terminal at approximately 25 m model height
+ const tip=cyl(.018,.07,[x,24.0,z],al,lightningGroup,10);
+ // two visible earth bonds from mast base to buried station grid
+ const bond=tube([[x-.18,.35,z],[x-.65,.08,z],[x-.65,-.18,z]],.045,copper,lightningGroup);
+ earthObjects.push(bond);
+ if(i===0||i===4||i===5||i===9)label('LIGHTNING MAST',[x,26.3,z]);
+ reg(tip,'Lightning Protection Mast',0,'Air-termination mast intended to intercept direct lightning strokes and conduct lightning current through a dedicated down-conductor/bond into the station earthing system. This is separate from the surge arresters connected to the HV phases.');
+});
 // Main internal access road along the control building and transformer, plus transformer access spur.
 box([238,.10,7.0],[25,.07,61.5],M(0x4e5352,0,.98),civil);
 box([8.0,.10,17.0],[56,.075,53.0],M(0x555a58,0,.98),civil);

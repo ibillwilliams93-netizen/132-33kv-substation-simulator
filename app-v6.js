@@ -531,8 +531,55 @@ const feederRelayLamps=[];
  lamp.rotation.x=Math.PI/2; feederRelayLamps.push(lamp);
  reg(rg,'Feeder '+(i+1)+' Protection Kiosk',0,'Receives CT secondary signals, applies feeder protection logic and sends a DC trip command to the Feeder '+(i+1)+' circuit breaker. This control wiring is electrically separate from the 33 kV primary circuit.');
 });
-// control building and trenches
-box([25,7.5,17],[48,3.75,39],M(0xc8c5ba,0,.9));box([26,.5,18],[48,7.7,39],M(0x4c575d,.45,.5));box([175,.22,2],[25,.11,26],black);label('CONTROL & PROTECTION',[48,11.2,39]);
+// CONTROL BUILDING + PROTECTION PANELS + STATION DC SYSTEM
+const controlBuilding=new THREE.Group();scene.add(controlBuilding);
+box([25,7.5,17],[48,3.75,39],M(0xc8c5ba,0,.9),controlBuilding);
+box([26,.5,18],[48,7.7,39],M(0x4c575d,.45,.5),controlBuilding);
+// doors/windows and a visible equipment-room frontage
+box([2.8,5.2,.22],[42,2.65,30.42],M(0x38464c,.45,.35),controlBuilding);
+for(const x of [47,52,57])box([3.1,2.1,.18],[x,4.5,30.40],M(0x7aa1b0,.15,.22),controlBuilding);
+label('CONTROL & PROTECTION',[48,11.2,39]);
+
+// Relay/control panels: 132 kV line, transformer, 33 kV incomer and three feeder panels.
+const panelNames=['132 kV LINE','TRANSFORMER','33 kV INCOMER','FEEDER 1','FEEDER 2','FEEDER 3'];
+const controlPanels=[];
+panelNames.forEach((name,i)=>{
+ const px=39.0+i*3.55, pz=37.0;
+ const pg=new THREE.Group();scene.add(pg);controlPanels.push(pg);
+ box([3.0,5.4,1.05],[px,2.7,pz],M(0x59646a,.62,.32),pg);
+ box([2.55,4.75,.08],[px,2.8,pz-.57],M(0x202c32,.22,.25),pg);
+ // mimic relay/HMI windows and status lamps without implying a specific vendor.
+ for(let r=0;r<3;r++)box([1.65,.52,.06],[px,4.35-r*.85,pz-.62],M(0x6f8d97,.08,.25),pg);
+ for(let l=0;l<3;l++){const lamp=cyl(.11,.08,[px-.62+l*.62,1.35,pz-.64],M([0x2dcc66,0xe8c83d,0xd94b42][l],.1,.35),pg,12);lamp.rotation.x=Math.PI/2}
+ label(name,[px,6.35,pz]);
+ reg(pg,name+' Protection Panel',0,'Protection and control panel in the station control building. It receives instrument-transformer and status inputs and issues supervised DC control/trip commands to the associated circuit breaker.');
+});
+
+// Station DC: charger -> DC distribution -> battery bank -> protected trip/control circuits.
+const dcGroup=new THREE.Group();scene.add(dcGroup);
+box([3.2,5.2,1.25],[40.0,2.6,44.0],M(0x445159,.55,.32),dcGroup);
+box([2.65,1.15,.08],[40.0,4.05,43.33],M(0x1d2a30,.15,.2),dcGroup);
+label('BATTERY CHARGER',[40,6.4,44]);
+box([3.2,5.2,1.25],[44.2,2.6,44.0],M(0x445159,.55,.32),dcGroup);
+label('DC DISTRIBUTION',[44.2,6.4,44]);
+
+// Two rows of generic station battery cells on insulated racks.
+for(const z of [47.0,49.0])for(let n=0;n<8;n++){
+ const bx=38.5+n*1.45;
+ box([1.05,1.35,.9],[bx,1.25,z],M(0x40494c,.18,.5),dcGroup);
+ box([.16,.15,.16],[bx-.25,2.0,z],copper,dcGroup);box([.16,.15,.16],[bx+.25,2.0,z],copper,dcGroup);
+ if(n<7)tube([[bx+.25,2.0,z],[bx+1.20,2.0,z]],.035,copper,dcGroup);
+}
+label('STATION BATTERY BANK',[44,3.5,49]);
+
+// Separate low-voltage control cable trench and conceptual routes from panels/DC system to yard.
+// These do not represent primary 33/132 kV conductors.
+box([175,.22,2],[25,.11,26],black);
+const ctrlMat=M(0x334a58,.08,.4);
+tube([[44.2,.45,43.5],[44.2,.18,26],[132,.18,26],[132,.18,7]],.045,ctrlMat,dcGroup);
+tube([[44.2,.45,43.5],[44.2,.18,26],[-34,.18,26],[-34,.18,7]],.045,ctrlMat,dcGroup);
+tube([[44.2,.45,43.5],[44.2,.18,26],[78,.18,26],[78,.18,7]],.045,ctrlMat,dcGroup);
+reg(dcGroup,'Station DC Battery and Charger',0,'The station DC system supplies dependable protection, control and circuit-breaker trip energy even if station AC auxiliary supply is unavailable. The displayed routes are low-voltage control circuits, separate from primary power conductors.');
 // V7 realistic terminal hardware: clamps and phase marker discs at major connection points
 const phaseColors=[0xd94b42,0xe7c447,0x4f7fd7];
 [[-69,9.5],[-56.1,5.75],[-49.9,5.75],[-40,5.55],[-15,6.2],[-5.1,5.75],[8,7.2],[39,7.2]].forEach(([x,y])=>{
@@ -606,7 +653,7 @@ function runProtection(i){
  const ids=['pCT','pRelay','pDC','pTrip'];state.protPulse++;
  const token=state.protPulse;document.getElementById('protMsg').textContent='Feeder '+(i+1)+' abnormal current detected — selective protection operating';
  ids.forEach(x=>document.getElementById(x).classList.remove('live'));
- ids.forEach((id,k)=>setTimeout(()=>{if(token!==state.protPulse)return;document.getElementById(id).classList.add('live');document.getElementById('protMsg').textContent=['Feeder '+(i+1)+' CT secondary current rises','Feeder overcurrent / earth-fault relay picks up','Station DC supplies the breaker trip circuit','F'+(i+1)+' trip coil opens only Feeder '+(i+1)+' CB'][k]},k*420));
+ ids.forEach((id,k)=>setTimeout(()=>{if(token!==state.protPulse)return;document.getElementById(id).classList.add('live');document.getElementById('protMsg').textContent=['Feeder '+(i+1)+' CT secondary current rises','Feeder '+(i+1)+' protection panel relay picks up','Station battery/DC distribution supplies the trip circuit','F'+(i+1)+' trip coil opens only Feeder '+(i+1)+' CB'][k]},k*420));
  setTimeout(()=>{if(token!==state.protPulse)return;document.getElementById('protMsg').textContent='F'+(i+1)+' isolated • F'+((i+1)%3+1)+' and F'+((i+2)%3+1)+' remain available';ids.forEach(x=>document.getElementById(x).classList.remove('live'))},2200)
 }
 document.getElementById('power').onclick=()=>{state.power=!state.power;ui()};

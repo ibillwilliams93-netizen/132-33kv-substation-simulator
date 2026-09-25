@@ -586,12 +586,11 @@ const controlBuilding=new THREE.Group();scene.add(controlBuilding);
 const wallMat=M(0xc8c5ba,0,.9);
 box([25,2.4,.35],[48,1.2,30.5],wallMat,controlBuilding);
 box([25,7.5,.35],[48,3.75,47.5],wallMat,controlBuilding);
-box([.35,7.5,17],[35.5,3.75,39],wallMat,controlBuilding);
-box([.35,7.5,17],[60.5,3.75,39],wallMat,controlBuilding);
+box([.35,2.4,17],[35.5,1.2,39],wallMat,controlBuilding);
+box([.35,2.4,17],[60.5,1.2,39],wallMat,controlBuilding);
 // Roof intentionally removed/open for training cutaway visibility into the control room.
 // A low parapet defines the roof line without obscuring internal protection/DC equipment.
-for(const z of [30.5,47.5])box([26,.35,.35],[48,7.45,z],M(0x4c575d,.45,.5),controlBuilding);
-for(const x of [35.0,61.0])box([.35,.35,17],[x,7.45,39],M(0x4c575d,.45,.5),controlBuilding);
+box([26,.35,.35],[48,7.45,47.5],M(0x4c575d,.45,.5),controlBuilding);
 // Open-front training cutaway: low safety wall only; no opaque facade blocking the interior.
 label('CONTROL & PROTECTION',[48,11.2,39]);
 
@@ -599,41 +598,45 @@ label('CONTROL & PROTECTION',[48,11.2,39]);
 box([24.2,.10,16.2],[48,.08,39],M(0x9b9d98,.02,.92),controlBuilding);
 for(const x of [37,59])box([.08,.02,13.5],[x,.15,39],M(0xe1cf54,.02,.7),controlBuilding);
 label('OPEN CONTROL ROOM',[48,8.6,39]);
+box([5.4,.18,2.2],[48,1.15,41.2],M(0x59646a,.45,.42),controlBuilding);
+box([.22,2.0,.22],[46,1.0,41.2],steel,controlBuilding);box([.22,2.0,.22],[50,1.0,41.2],steel,controlBuilding);
+box([1.6,1.05,.12],[48,2.05,40.25],M(0x17252c,.15,.22),controlBuilding);
+label('OPERATOR / SCADA DESK',[48,3.15,41.2]);
 
 // Relay/control panels: 132 kV line, transformer, 33 kV incomer and three feeder panels.
 const panelNames=['132 kV LINE','TRANSFORMER','33 kV INCOMER','FEEDER 1','FEEDER 2','FEEDER 3'];
 const controlPanels=[];
 panelNames.forEach((name,i)=>{
- const px=38.5+i*3.75, pz=35.2;
+ const row=i<3?0:1, col=i%3;
+ const px=40.0+col*7.7, pz=row===0?38.0:33.3;
  const pg=new THREE.Group();scene.add(pg);controlPanels.push(pg);
- box([3.0,5.4,1.05],[px,2.7,pz],M(0x59646a,.62,.32),pg);
- box([2.55,4.75,.08],[px,2.8,pz-.57],M(0x202c32,.22,.25),pg);
- // mimic relay/HMI windows and status lamps without implying a specific vendor.
- for(let r=0;r<3;r++)box([1.65,.52,.06],[px,4.35-r*.85,pz-.62],M(0x6f8d97,.08,.25),pg);
- for(let l=0;l<3;l++){const lamp=cyl(.11,.08,[px-.62+l*.62,1.35,pz-.64],M([0x2dcc66,0xe8c83d,0xd94b42][l],.1,.35),pg,12);lamp.rotation.x=Math.PI/2}
- label(name,[px,6.15,pz]);
+ box([3.8,5.2,1.15],[px,2.6,pz],M(0x59646a,.62,.32),pg);
+ box([3.30,4.55,.08],[px,2.75,pz-.62],M(0x202c32,.22,.25),pg);
+ for(let r=0;r<3;r++)box([2.10,.50,.06],[px,4.25-r*.82,pz-.67],M(0x6f8d97,.08,.25),pg);
+ for(let l=0;l<3;l++){const lamp=cyl(.12,.08,[px-.72+l*.72,1.35,pz-.69],M([0x2dcc66,0xe8c83d,0xd94b42][l],.1,.35),pg,12);lamp.rotation.x=Math.PI/2}
+ label(name,[px,5.95,pz]);
  reg(pg,name+' Protection Panel',0,'Protection and control panel in the station control building. It receives instrument-transformer and status inputs and issues supervised DC control/trip commands to the associated circuit breaker.');
 });
 
 // Station DC: charger -> DC distribution -> battery bank -> protected trip/control circuits.
 const dcGroup=new THREE.Group();scene.add(dcGroup);
-box([3.2,5.2,1.25],[39.5,2.6,43.2],M(0x445159,.55,.32),dcGroup);
-box([2.65,1.15,.08],[39.5,4.05,42.53],M(0x1d2a30,.15,.2),dcGroup);
-label('BATTERY CHARGER',[39.5,6.15,43.2]);
-box([3.2,5.2,1.25],[43.5,2.6,43.2],M(0x445159,.55,.32),dcGroup);
-label('DC DISTRIBUTION',[43.5,6.15,43.2]);
+box([3.2,5.2,1.25],[38.5,2.6,44.2],M(0x445159,.55,.32),dcGroup);
+box([2.65,1.15,.08],[38.5,4.05,43.53],M(0x1d2a30,.15,.2),dcGroup);
+label('BATTERY CHARGER',[38.5,5.8,44.2]);
+box([3.2,5.2,1.25],[43.0,2.6,44.2],M(0x445159,.55,.32),dcGroup);
+label('DC DISTRIBUTION',[43.0,5.8,44.2]);
 
 // Indoor station battery bank: two compact rows on insulated steel racks inside the control building.
-for(const z of [44.6,46.0]){
- box([22.0,.18,1.25],[48.0,.55,z],steel,dcGroup);
- for(let n=0;n<12;n++){
-   const bx=38.4+n*1.75;
+for(const z of [44.5,46.0]){
+ box([13.0,.18,1.25],[53.0,.55,z],steel,dcGroup);
+ for(let n=0;n<7;n++){
+   const bx=47.8+n*1.72;
    box([1.15,1.30,.90],[bx,1.32,z],M(0x40494c,.18,.5),dcGroup);
    box([.16,.15,.16],[bx-.28,2.02,z],copper,dcGroup);box([.16,.15,.16],[bx+.28,2.02,z],copper,dcGroup);
-   if(n<11)tube([[bx+.28,2.02,z],[bx+1.47,2.02,z]],.035,copper,dcGroup);
+   if(n<6)tube([[bx+.28,2.02,z],[bx+1.44,2.02,z]],.035,copper,dcGroup);
  }
 }
-label('STATION BATTERY BANK',[51,3.5,45.3]);
+label('STATION BATTERY BANK',[53,3.35,45.2]);
 
 // Separate low-voltage control cable trench and conceptual routes from panels/DC system to yard.
 // These do not represent primary 33/132 kV conductors.

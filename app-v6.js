@@ -413,37 +413,33 @@ const feederGroups=[],feederBreakerVisuals=[],feederDisconnectors=[],feederConta
      pad(126,laneZ,1.8,1.5);ins(126,.45,laneZ,3.55,porc,g);
      box([.50,.12,.30],[126,4.08,laneZ],al,g);
    }else{
-     // F1/F3: bus drop -> sealed cable sealing end -> underground phase duct -> feeder riser.
-     // The three phase ducts are kept independent and parallel for a clean, readable installation.
-     const sideX=118;
+     // F1/F3: take the cable vertically down directly beneath its matching bus phase,
+     // then route below grade in a neat protected conduit corridor to the feeder riser.
      const ductY=-0.42;
-     const sideSign=i===0?-1:1;
-     const sideBusZ=sideSign*(10.5+Math.abs(busz));
      const ductZ=laneZ;
-     // Short bus jumper into a 33 kV outdoor cable sealing end.
-     // F1 and F3 use the same geometry mirrored to opposite sides of the bus.
-     tube([[123,7.2,busz],[121,7.2,busz],[121,7.2,sideBusZ],[sideX,5.15,sideBusZ]],.07,al,g);
-     pad(sideX,sideBusZ,1.9,1.55);
-     box([.32,2.5,.32],[sideX,1.45,sideBusZ],gal,g);
-     ins(sideX,2.55,sideBusZ,2.35,porc,g);
-     box([.62,.15,.38],[sideX,5.00,sideBusZ],al,g);
-     // stress-cone / cable-head representation below the porcelain termination
-     cyl(.28,.70,[sideX,2.30,sideBusZ],black,g,18);
-     cyl(.38,.18,[sideX,1.90,sideBusZ],M(0x555d60,.45,.35),g,18);
-     // Galvanized protective riser from sealing end into below-grade duct.
-     tube([[sideX,1.90,sideBusZ],[sideX,.20,sideBusZ],[sideX,ductY,sideBusZ]],.18,steel,g);
-     // Buried route turns from the side corridor toward its feeder lane.
-     tube([[sideX,ductY,sideBusZ],[120,ductY,sideBusZ],[122,ductY,ductZ],[126,ductY,ductZ]],.24,black,g);
-     tube([[sideX,ductY,sideBusZ],[120,ductY,sideBusZ],[122,ductY,ductZ],[126,ductY,ductZ]],.070,al,g);
-     // Feeder-side galvanized riser and matching cable sealing end.
+     const dropX=i===0?114:120;
+     // Compact bus tee and cable sealing end located directly below the rigid busbar.
+     tube([[dropX,7.9,busz],[dropX,5.15,busz]],.07,al,g);
+     pad(dropX,busz,1.9,1.55);
+     box([.32,2.5,.32],[dropX,1.45,busz],gal,g);
+     ins(dropX,2.55,busz,2.35,porc,g);
+     box([.62,.15,.38],[dropX,5.00,busz],al,g);
+     cyl(.28,.70,[dropX,2.30,busz],black,g,18);
+     cyl(.38,.18,[dropX,1.90,busz],M(0x555d60,.45,.35),g,18);
+     // Protective galvanized down-riser.
+     tube([[dropX,1.90,busz],[dropX,.20,busz],[dropX,ductY,busz]],.18,steel,g);
+     // Underground conduit remains underneath the busbar before turning toward F1/F3.
+     tube([[dropX,ductY,busz],[dropX,ductY,ductZ],[122,ductY,ductZ],[126,ductY,ductZ]],.24,black,g);
+     tube([[dropX,ductY,busz],[dropX,ductY,ductZ],[122,ductY,ductZ],[126,ductY,ductZ]],.070,al,g);
+     // Feeder-side riser and matching sealing end.
      tube([[126,ductY,ductZ],[126,.20,ductZ],[126,1.90,ductZ]],.18,steel,g);
      box([.32,2.5,.32],[126,1.45,ductZ],gal,g);
      cyl(.28,.70,[126,2.30,ductZ],black,g,18);
      ins(126,2.55,ductZ,1.45,porc,g);
      box([.55,.14,.34],[126,4.08,ductZ],al,g);
      tube([[126,4.08,ductZ],[126,4.15,ductZ]],.07,al,g);
-     // Concrete pull-pit covers at each end of the duct run.
-     box([1.55,.14,1.25],[sideX,.07,sideBusZ],M(0x666d70,.65,.3),g);
+     // Flush pull pits mark accessible ends without cluttering the overhead yard.
+     box([1.55,.14,1.25],[dropX,.07,busz],M(0x666d70,.65,.3),g);
      box([1.55,.14,1.25],[126,.07,ductZ],M(0x666d70,.65,.3),g);
    }
    // Feeder disconnector uses the same separated phase lane.
@@ -510,7 +506,7 @@ const p33Up=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[63.2,14,z],[68.5,8,z],[
 const p33=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[78.38,3.75,z],[88,4,z],[94,4.4,z],[96,7.9,z],[108,7.9,z],[120,7.9,z],[123,7.9,z],[123,7.2,z]].map(v=>new THREE.Vector3(...v))));
 const flow33Up=[[],[],[]];
 const feederZ=[-28,0,28];
-const pFeeders=feederZ.map((fz,fi)=>phaseZ33.map((z,ph)=>{const lane=fz+[-4.2,0,4.2][ph],sideZ=(fi===0?-1:1)*(10.5+Math.abs(z));const pts=fi===1?[[123,7.2,z],[124.5,7.2,z],[124.5,5.45,lane],[126,4.15,lane]]:[[123,7.2,z],[121,7.2,z],[121,7.2,sideZ],[118,5.15,sideZ],[118,1.9,sideZ],[118,-.42,sideZ],[120,-.42,sideZ],[122,-.42,lane],[126,-.42,lane],[126,1.9,lane],[126,4.15,lane]];pts.push([132,3.55,lane],[136,3.35,lane],[139.6,7.0,lane],[141,9.55,lane],[150,9.55,lane],[162,10.2,lane]);return new THREE.CatmullRomCurve3(pts.map(v=>new THREE.Vector3(...v)))}));
+const pFeeders=feederZ.map((fz,fi)=>phaseZ33.map((z,ph)=>{const lane=fz+[-4.2,0,4.2][ph],dropX=fi===0?114:120;const pts=fi===1?[[123,7.2,z],[124.5,7.2,z],[124.5,5.45,lane],[126,4.15,lane]]:[[dropX,7.9,z],[dropX,5.15,z],[dropX,1.9,z],[dropX,-.42,z],[dropX,-.42,lane],[122,-.42,lane],[126,-.42,lane],[126,1.9,lane],[126,4.15,lane]];pts.push([132,3.55,lane],[136,3.35,lane],[139.6,7.0,lane],[141,9.55,lane],[150,9.55,lane],[162,10.2,lane]);return new THREE.CatmullRomCurve3(pts.map(v=>new THREE.Vector3(...v)))}));
 for(let ph=0;ph<3;ph++){
  for(const arr of [flow132Line[ph],flow132AfterLineIso[ph],flow132AfterCB[ph],flow132Bus[ph]])for(let i=0;i<7;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/7;arr.push(o)}
  for(let i=0;i<8;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/8;flow33Up[ph].push(o)}

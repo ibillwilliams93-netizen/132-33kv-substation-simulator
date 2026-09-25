@@ -709,6 +709,64 @@ const scenarios={
  f1off:{task:'Isolate 33 kV Feeder 1',initial:{power:true,cb33:true,cb132:true,busIso:true,lineIso:true},seq:[['f1',false,'Open Feeder 1 circuit breaker'],['fd1',false,'Open Feeder 1 disconnector']]},
  fault:{task:'Respond to a Feeder 1 protection trip and establish isolation',initial:{power:true,cb33:true,cb132:true,busIso:true,lineIso:true},seq:[['ff1',true,'Initiate Feeder 1 fault/protection trip'],['fd1',false,'Open Feeder 1 disconnector after CB trip']]}
 };
+const lessons={
+ powerflow:[
+  ['132 kV Incoming','Power enters on the three-phase 132 kV transmission line and incoming gantry.'],
+  ['132 kV Line Bay','The path passes the surge-arrester shunt protection, line disconnector and CT before the 132 kV circuit breaker.'],
+  ['132 kV Bus','With the breaker and bus disconnector closed, the three phases energize the 132 kV busbar and transformer bay.'],
+  ['Power Transformer','The transformer transfers energy by electromagnetic induction: 132 kV AC creates alternating magnetic flux that induces 33 kV AC in the LV winding.'],
+  ['33 kV Incomer','The 33 kV transformer terminals feed the 33 kV incomer circuit breaker and instrument-transformer zone.'],
+  ['33 kV Distribution','The rigid 33 kV bus supplies F1, F2 and F3 through their own disconnectors, circuit breakers and CTs.']
+ ],
+ protection:[
+  ['Fault Detection','A feeder fault produces abnormal primary current. Its CT provides a proportional secondary signal to protection.'],
+  ['Relay Decision','The feeder overcurrent/earth-fault protection operates for the affected feeder.'],
+  ['Station DC','The station battery and DC distribution provide dependable trip energy independent of the primary power circuit.'],
+  ['Selective Trip','The trip coil opens only the affected feeder circuit breaker; healthy feeders remain available.']
+ ],
+ transformer:[
+  ['HV Side','Three 132 kV phase connections terminate on the transformer HV bushings.'],
+  ['Magnetic Coupling','AC in the HV winding establishes alternating magnetic flux in the transformer core. There is no direct electrical connection between HV and LV windings.'],
+  ['LV Side','The changing flux induces 33 kV AC in the LV winding, which exits through the three 33 kV bushings.'],
+  ['Accessories','The model includes conservator/Buchholz piping, cooling equipment, OLTC enclosure, gauges, pressure relief, marshalling kiosk and tank earthing.']
+ ],
+ earthing:[
+  ['Earth Grid','The buried station earth grid interconnects the yard and helps control touch/step potentials during faults.'],
+  ['Equipment Bonding','Metal structures, transformer tank, gantries and major equipment frames are bonded to the grid.'],
+  ['Surge Arresters','Surge arresters connect phase-to-earth as shunt protective devices; they are not series power-path equipment.'],
+  ['Fault Path','During an earth fault, the earthing network provides a fault-current path that supports protective-device operation.']
+ ]
+};
+const equipmentQuiz=[
+ ['Which device is intended to interrupt load and fault current?',['Circuit breaker','Disconnector','CT'],'Circuit breaker'],
+ ['Which device provides visible isolation and should not interrupt load current?',['Disconnector','Power transformer','Surge arrester'],'Disconnector'],
+ ['Which equipment changes the main system voltage from 132 kV to 33 kV?',['Power transformer','CT','VT'],'Power transformer'],
+ ['How is a surge arrester connected?',['Phase-to-earth shunt','In series with load current','Across a CB contact'],'Phase-to-earth shunt'],
+ ['What supplies dependable breaker trip energy?',['Station DC battery','132 kV busbar','Earth grid'],'Station DC battery']
+];
+let lessonIndex=0,quizIndex=0,quizScore=0;
+function trainingMode(){return document.getElementById('trainingMode').value}
+function showLesson(){
+ const mode=trainingMode(), lc=document.getElementById('lessonControls'), qb=document.getElementById('quizBox'), sc=document.getElementById('scenario');
+ sc.style.display=mode==='switching'?'block':'none'; qb.style.display=mode==='equipment'?'block':'none';lc.style.display=(lessons[mode]?'block':'none');
+ if(mode==='switching'){resetTraining();return}
+ if(mode==='equipment'){quizIndex=0;quizScore=0;renderQuiz();return}
+ const arr=lessons[mode]||[];lessonIndex=Math.max(0,Math.min(lessonIndex,arr.length-1));
+ if(arr.length){document.getElementById('trainTask').textContent=arr[lessonIndex][0];document.getElementById('trainStep').textContent=arr[lessonIndex][1];document.getElementById('trainScore').textContent='Lesson '+(lessonIndex+1)+' of '+arr.length}
+ if(mode==='transformer'&&!state.cut)document.getElementById('cut').click();
+ if(mode==='earthing'&&!state.earth)document.getElementById('earth').click();
+}
+function renderQuiz(){
+ const q=equipmentQuiz[quizIndex],qb=document.getElementById('quizBox');
+ if(!q){qb.innerHTML='<b class="green">IDENTIFICATION COMPLETE</b>';document.getElementById('trainScore').textContent='Score: '+quizScore+' / '+equipmentQuiz.length;return}
+ document.getElementById('trainTask').textContent='Equipment question '+(quizIndex+1)+' of '+equipmentQuiz.length;
+ document.getElementById('trainStep').textContent=q[0];qb.innerHTML='';
+ q[1].forEach(a=>{const b=document.createElement('button');b.textContent=a;b.style.margin='3px';b.onclick=()=>{if(a===q[2]){quizScore++;trainLog('✓ '+a)}else trainLog('✗ '+a+' — correct: '+q[2]);quizIndex++;renderQuiz()};qb.appendChild(b)});
+ document.getElementById('trainScore').textContent='Score: '+quizScore+' / '+quizIndex;
+}
+document.getElementById('trainingMode').onchange=()=>{lessonIndex=0;showLesson()};
+document.getElementById('lessonPrev').onclick=()=>{lessonIndex--;showLesson()};
+document.getElementById('lessonNext').onclick=()=>{lessonIndex++;showLesson()};
 function currentScenario(){return scenarios[document.getElementById('scenario').value]||scenarios.txoff}
 function trainingAction(key,newValue){if(!state.training)return;const exp=currentScenario().seq[state.trainingStep];if(exp&&key===exp[0]&&newValue===exp[1]){state.trainingStep++;trainLog('✓ '+exp[2]);if(state.trainingStep===currentScenario().seq.length){document.getElementById('trainStep').innerHTML='<b class="green">TASK COMPLETE</b> • '+state.trainingErrors+' unsafe/incorrect attempt(s)';trainLog('Assessment complete.')}}else{state.trainingErrors++;trainLog('✗ Incorrect sequence: '+key+' '+(newValue?'CLOSE/OPERATE':'OPEN/RESET'));}}
 function trainLog(t){const l=document.getElementById('trainLog');l.innerHTML+=t+'<br>';l.scrollTop=l.scrollHeight;updateTraining()}
@@ -755,8 +813,8 @@ document.getElementById('earth').onclick=()=>{state.earth=!state.earth;earthObje
 function view(p,t){camera.position.set(...p);controls.target.set(...t);controls.update()}
 document.getElementById('overview').onclick=()=>view([105,68,118],[25,5,0]);document.getElementById('incoming').onclick=()=>view([-48,25,46],[-48,5,0]);document.getElementById('transformer').onclick=()=>view([83,29,35],[56,8,0]);document.getElementById('yard33').onclick=()=>view([138,31,65],[110,4,0]);document.getElementById('top').onclick=()=>view([25,175,.1],[25,0,0]);
 document.getElementById('sldView').onclick=()=>{document.getElementById('left').classList.remove('control-hidden');document.getElementById('eqName').textContent='LIVE SINGLE LINE DIAGRAM';document.getElementById('eqInfo').textContent='Click a device in the Live SLD to fly to the corresponding 3D equipment.'};
-document.getElementById('training').onclick=()=>{state.training=!state.training;document.getElementById('training').classList.toggle('trainingOn',state.training);document.getElementById('trainingPanel').style.display=state.training?'block':'none';document.getElementById('eqName').textContent=state.training?'TRAINING TASK':'TRAINING MODE';document.getElementById('eqInfo').textContent=state.training?'Operate the actual switching controls in the required sequence. Unsafe disconnector operations are blocked and recorded.':'Training exercise stopped.';if(state.training)resetTraining();ui()};
-document.getElementById('trainReset').onclick=resetTraining;
+document.getElementById('training').onclick=()=>{state.training=!state.training;document.getElementById('training').classList.toggle('trainingOn',state.training);document.getElementById('trainingPanel').style.display=state.training?'block':'none';if(state.training)setTimeout(showLesson,0);document.getElementById('eqName').textContent=state.training?'TRAINING TASK':'TRAINING MODE';document.getElementById('eqInfo').textContent=state.training?'Operate the actual switching controls in the required sequence. Unsafe disconnector operations are blocked and recorded.':'Training exercise stopped.';if(state.training)resetTraining();ui()};
+document.getElementById('trainReset').onclick=()=>{lessonIndex=0;if(trainingMode()==='switching')resetTraining();else showLesson()};
 document.getElementById('scenario').onchange=()=>{if(state.training)resetTraining()};
 function clickControl(id){document.getElementById(id)?.click()}
 document.getElementById('symLineIso')?.addEventListener('click',()=>clickControl('lineIso'));

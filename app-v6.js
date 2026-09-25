@@ -389,6 +389,23 @@ const inst33=new THREE.Group();scene.add(inst33);[-3.2,0,3.2].forEach(z=>{pad(88
 // V9 Phase 2: three complete, visually distinct 33 kV feeder bays.
 // Each bay has bus take-off, three-phase disconnector, breaker, CT, outgoing gantry and conductors.
 const feederGroups=[],feederBreakerVisuals=[],feederDisconnectors=[],feederContacts=[[],[],[]];
+// Side take-off support frames for the two outer feeders (F1 and F3).
+// These keep the branch conductors physically supported after they leave the side of the main bus.
+for(const side of [-1,1]){
+ const sx=side<0?118:128;
+ for(const z of [-5.2,5.2]){
+   box([1.15,.42,1.15],[sx,.21,z],conc);
+   box([.32,6.0,.32],[sx,3.2,z],gal);
+ }
+ box([.38,.34,11],[sx,6.15,0],gal);
+ beamBetween([sx,5.0,-5.2],[sx,6.15,-3.9],.09,gal);
+ beamBetween([sx,5.0,5.2],[sx,6.15,3.9],.09,gal);
+ [-3.2,0,3.2].forEach((z,ph)=>{
+   ins(sx,6.32,z,1.38,porc);
+   box([.68,.13,.36],[sx,7.76,z],al);
+   cyl(.16,.16,[sx,7.98,z],M([0xd94b42,0xe7c447,0x4f7fd7][ph],.08,.45));
+ });
+}
 [-28,0,28].forEach((fz,i)=>{
  const g=new THREE.Group();scene.add(g);feederGroups.push(g);
  const ds=new THREE.Group();scene.add(ds);
@@ -403,9 +420,10 @@ const feederGroups=[],feederBreakerVisuals=[],feederDisconnectors=[],feederConta
    // F1 and F3 leave from opposite side extensions of the bus before turning into their bays.
    const takeoffX=i===1?123:(i===0?118:128);
    const shoulderX=i===1?125:(i===0?120:130);
-   if(i===0) tube([[123,7.2,busz],[118,7.2,busz]],.075,al,g);
-   if(i===2) tube([[123,7.2,busz],[128,7.2,busz]],.075,al,g);
-   tube([[takeoffX,7.2,busz],[shoulderX,7.2,busz],[shoulderX,6.15,laneZ],[126.0,4.15,laneZ]],.065,al,g);
+   if(i===0) tube([[123,7.2,busz],[120,7.9,busz],[118,7.9,busz]],.075,al,g);
+   if(i===2) tube([[123,7.2,busz],[125,7.9,busz],[128,7.9,busz]],.075,al,g);
+   const takeoffY=i===1?7.2:7.9;
+   tube([[takeoffX,takeoffY,busz],[shoulderX,takeoffY,busz],[shoulderX,6.15,laneZ],[126.0,4.15,laneZ]],.065,al,g);
    // Dedicated take-off support keeps each phase physically separated and visibly seated.
    pad(126,laneZ,1.8,1.5);ins(126,.45,laneZ,3.55,porc,g);
    box([.50,.12,.30],[126,4.08,laneZ],al,g);
@@ -473,7 +491,7 @@ const p33Up=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[63.2,14,z],[68.5,8,z],[
 const p33=phaseZ33.map(z=>new THREE.CatmullRomCurve3([[78.38,3.75,z],[88,4,z],[94,4.4,z],[96,7.9,z],[108,7.9,z],[120,7.9,z],[123,7.9,z],[123,7.2,z]].map(v=>new THREE.Vector3(...v))));
 const flow33Up=[[],[],[]];
 const feederZ=[-28,0,28];
-const pFeeders=feederZ.map((fz,fi)=>phaseZ33.map((z,ph)=>{const lane=fz+[-4.2,0,4.2][ph],takeoffX=fi===1?123:(fi===0?118:128),shoulderX=fi===1?125:(fi===0?120:130);return new THREE.CatmullRomCurve3([[takeoffX,7.2,z],[shoulderX,7.2,z],[shoulderX,6.15,lane],[126,4.15,lane],[132,3.55,lane],[136,3.35,lane],[139.6,7.0,lane],[141,9.55,lane],[150,9.55,lane],[162,10.2,lane]].map(v=>new THREE.Vector3(...v)))}));
+const pFeeders=feederZ.map((fz,fi)=>phaseZ33.map((z,ph)=>{const lane=fz+[-4.2,0,4.2][ph],takeoffX=fi===1?123:(fi===0?118:128),shoulderX=fi===1?125:(fi===0?120:130),takeoffY=fi===1?7.2:7.9;return new THREE.CatmullRomCurve3([[takeoffX,takeoffY,z],[shoulderX,takeoffY,z],[shoulderX,6.15,lane],[126,4.15,lane],[132,3.55,lane],[136,3.35,lane],[139.6,7.0,lane],[141,9.55,lane],[150,9.55,lane],[162,10.2,lane]].map(v=>new THREE.Vector3(...v)))}));
 for(let ph=0;ph<3;ph++){
  for(const arr of [flow132Line[ph],flow132AfterLineIso[ph],flow132AfterCB[ph],flow132Bus[ph]])for(let i=0;i<7;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/7;arr.push(o)}
  for(let i=0;i<8;i++){const o=particle(phaseColorsFlow[ph]);o.userData.t=i/8;flow33Up[ph].push(o)}

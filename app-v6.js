@@ -16,7 +16,7 @@ controls.enableDamping=true;
 controls.dampingFactor=.055;
 controls.panSpeed=2.35;
 controls.rotateSpeed=1.55;
-controls.zoomSpeed=12.0;
+controls.zoomSpeed=9.0;
 controls.zoomToCursor=true;
 controls.minDistance=0.01;
 // Desktop navigation should react immediately but coast only slightly.

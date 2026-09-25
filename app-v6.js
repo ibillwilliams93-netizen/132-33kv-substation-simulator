@@ -582,14 +582,17 @@ const feederRelayLamps=[];
 });
 // CONTROL BUILDING + PROTECTION PANELS + STATION DC SYSTEM
 const controlBuilding=new THREE.Group();scene.add(controlBuilding);
-box([25,7.5,17],[48,3.75,39],M(0xc8c5ba,0,.9),controlBuilding);
+// Four-wall shell with NO roof/ceiling: open-top cutaway so internal panels and batteries are visible.
+const wallMat=M(0xc8c5ba,0,.9);
+box([25,2.4,.35],[48,1.2,30.5],wallMat,controlBuilding);
+box([25,7.5,.35],[48,3.75,47.5],wallMat,controlBuilding);
+box([.35,7.5,17],[35.5,3.75,39],wallMat,controlBuilding);
+box([.35,7.5,17],[60.5,3.75,39],wallMat,controlBuilding);
 // Roof intentionally removed/open for training cutaway visibility into the control room.
 // A low parapet defines the roof line without obscuring internal protection/DC equipment.
 for(const z of [30.5,47.5])box([26,.35,.35],[48,7.45,z],M(0x4c575d,.45,.5),controlBuilding);
 for(const x of [35.0,61.0])box([.35,.35,17],[x,7.45,39],M(0x4c575d,.45,.5),controlBuilding);
-// doors/windows and a visible equipment-room frontage
-box([2.8,5.2,.22],[42,2.65,30.42],M(0x38464c,.45,.35),controlBuilding);
-for(const x of [47,52,57])box([3.1,2.1,.18],[x,4.5,30.40],M(0x7aa1b0,.15,.22),controlBuilding);
+// Open-front training cutaway: low safety wall only; no opaque facade blocking the interior.
 label('CONTROL & PROTECTION',[48,11.2,39]);
 
 // Visible internal floor and operating aisle for the open-roof training view.

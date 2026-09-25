@@ -59,43 +59,10 @@ ground.rotation.x=-Math.PI/2;
 ground.position.set(25,.015,8);
 ground.receiveShadow=true;scene.add(ground);
 
-// Realistic crushed-rock surfacing: low-profile aggregate distributed across the switchyard.
-// Keep roads, control-building footprint and major transformer pad comparatively clear.
+// CRUSHED-ROCK SURFACING — optimized training-model finish.
+// The vertex-coloured ground plane provides aggregate variation without thousands of individual stone meshes.
+// This preserves roads, pads and trench readability while greatly reducing draw calls.
 const gravelGroup=new THREE.Group();scene.add(gravelGroup);
-const gravelMats=[
- M(0x8b8980,0,1),M(0x9a978c,0,1),M(0x77766f,0,1),M(0xaaa69a,0,1)
-];
-function gravelClear(x,z){
- // main road, control building, transformer/bund and cable-trench operating strip
- if(z>57.5&&z<65.5)return true;
- if(x>34&&x<62&&z>29&&z<49)return true;
- if(x>36&&x<76&&z>-17&&z<17)return true;
- if(z>24.2&&z<27.8)return true;
- return false;
-}
-// Deterministic placement gives texture without changing every page load.
-for(let gx=-91;gx<=140;gx+=2.25){
- for(let gz=-50;gz<=66;gz+=2.15){
-   const seed=Math.abs(Math.sin(gx*12.9898+gz*78.233));
-   if(seed<.23||gravelClear(gx,gz))continue;
-   const ox=(seed-.5)*1.15, oz=(Math.abs(Math.sin(seed*91.7))-.5)*1.05;
-   const r=.07+seed*.075, h=.025+seed*.035;
-   const stone=cyl(r*.72,r,[gx+ox,.055+h/2,gz+oz],gravelMats[Math.floor(seed*10)%gravelMats.length],gravelGroup,6);
-   stone.rotation.x=(seed-.5)*.55;stone.rotation.z=(seed-.5)*.75;
- }
-}
-// Denser crushed rock in the live switchyard equipment zones.
-for(const zone of [[-55,0,64,38],[105,0,72,48]]){
- const [cx,cz,w,d]=zone;
- for(let n=0;n<420;n++){
-   const a=Math.abs(Math.sin((n+1)*19.731+cx)),b=Math.abs(Math.sin((n+3)*43.117+cz));
-   const x=cx+(a-.5)*w,z=cz+(b-.5)*d;
-   if(gravelClear(x,z))continue;
-   const r=.055+(a*.065);
-   const stone=cyl(r*.7,r,[x,.06,z],gravelMats[n%gravelMats.length],gravelGroup,6);
-   stone.rotation.z=(b-.5)*.8;
- }
-}
 
 // Matching solid formation under the exact fence footprint: x -100..150, z -55..71.
 box([250,.55,126],[25,-.30,8],M(0x777872,0,1));
